@@ -199,8 +199,11 @@ function normalizeCreative(value: AssetwellPersistedCreative) {
     : hasReady
       ? "ready"
       : "failed"
+  const referenceAssets = Array.isArray(value.referenceAssets)
+    ? value.referenceAssets.flatMap(normalizeReference)
+    : undefined
 
-  return [{ ...value, status, takes, placements }]
+  return [{ ...value, status, takes, placements, referenceAssets }]
 }
 
 function normalizeTake(take: AssetwellPersistedTake): AssetwellPersistedTake {

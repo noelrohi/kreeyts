@@ -206,6 +206,7 @@ export interface AssetwellPersistedCreative {
   takes: AssetwellPersistedTake[]
   selectedTakeId: string
   placements: AssetwellPersistedPlacement[]
+  referenceAssets?: AssetwellPersistedReferenceAsset[]
   outputDirectoryName?: string
 }
 

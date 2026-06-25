@@ -34,6 +34,33 @@ import type { JobStatus } from "./types"
 const UNAVAILABLE_PLACEMENT_MESSAGE =
   "This narrow banner size is paused while we tune output quality."
 
+export type CreativeReferenceAssetSnapshot = Pick<
+  ReferenceAsset,
+  "id" | "name" | "url" | "filePath" | "sizeBytes" | "modifiedAt"
+>
+
+export function snapshotCreativeReferences(
+  referenceIds: string[],
+  library: ReferenceAsset[],
+): CreativeReferenceAssetSnapshot[] {
+  return referenceIds
+    .map((refId) => library.find((reference) => reference.id === refId))
+    .flatMap((reference) => {
+      if (!reference?.filePath) return []
+      return [
+        {
+          id: reference.id,
+          name: reference.name,
+          url: reference.url,
+          filePath: reference.filePath,
+          sizeBytes: reference.sizeBytes,
+          modifiedAt: reference.modifiedAt,
+        },
+      ]
+    })
+    .slice(0, 5)
+}
+
 interface UseHiggsfieldGenerationActionsRequest {
   bridge?: HiggsfieldBridge
   libraryBridge?: LibraryBridge
@@ -125,10 +152,10 @@ export function useHiggsfieldGenerationActions({
           status: "pending" as JobStatus,
         }),
       )
-      const references = request.referenceIds
-        .map((refId) => referenceLibrary.find((ref) => ref.id === refId))
-        .filter((ref): ref is ReferenceAsset => Boolean(ref?.filePath))
-        .slice(0, 5)
+      const references = snapshotCreativeReferences(
+        request.referenceIds,
+        referenceLibrary,
+      )
       const aspectRatios = await getModelAspectRatios(request.model, "image")
 
       setCreatives((current) => [
@@ -146,6 +173,7 @@ export function useHiggsfieldGenerationActions({
           takes,
           selectedTakeId: "",
           placements: [],
+          referenceAssets: references,
           outputDirectoryName,
         },
         ...current,

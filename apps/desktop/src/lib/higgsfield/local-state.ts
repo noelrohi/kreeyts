@@ -66,6 +66,7 @@ export function normalizeCreativeUrls(creative: Creative): Creative {
         ? localPreviewUrl(placement.url, placement.filePath)
         : placement.url,
     })),
+    referenceAssets: creative.referenceAssets?.map(normalizeReferenceUrl),
   }
 }
 

@@ -3,7 +3,6 @@ import {
   IconFolderOpen,
   IconPackage,
   IconPlayerPlay,
-  IconQuote,
 } from "@tabler/icons-react"
 import { useQueryStates } from "nuqs"
 import { toast } from "sonner"
@@ -13,6 +12,7 @@ import {
   CreativeStage,
   type StagePreviewState,
 } from "@/components/blocks/creative/creative-stage"
+import { CreativeSourceSummary } from "@/components/blocks/creative/creative-source-summary"
 import { PlacementsPanel } from "@/components/blocks/creative/placements-panel"
 import { StatusPill } from "@/components/blocks/creative/status-pill"
 import { PageHeaderActions } from "@/components/blocks/layout/page-header-actions"
@@ -88,6 +88,7 @@ export function CreativePage() {
   const selectedStageSize = selectedSize
     ? placementSpecs[selectedSize]
     : { width: creative.ratioW, height: creative.ratioH }
+  const sourceReferences = creative.referenceAssets ?? []
   const canUseLocalHero = Boolean(selectedSource?.filePath)
 
   const handleSelectTake = (takeId: string) => {
@@ -143,21 +144,11 @@ export function CreativePage() {
         </span>
       </div>
 
-      <section className="mt-4 overflow-hidden rounded-2xl border border-border/70 bg-card/35 p-4 shadow-[0_18px_60px_-40px_rgba(0,0,0,0.65)]">
-        <div className="flex items-start gap-3">
-          <div className="grid size-8 shrink-0 place-items-center rounded-full bg-ember/10 text-ember ring-1 ring-ember/20 ring-inset">
-            <IconQuote className="size-4" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-mono text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
-              Creation prompt
-            </p>
-            <p className="mt-1 text-sm leading-6 text-foreground/85">
-              {creative.prompt}
-            </p>
-          </div>
-        </div>
-      </section>
+      <CreativeSourceSummary
+        prompt={creative.prompt}
+        references={sourceReferences}
+        openOutput={openOutput}
+      />
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_300px]">
         <CreativeStage

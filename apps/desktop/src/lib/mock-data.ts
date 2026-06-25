@@ -45,6 +45,7 @@ export interface Creative {
   takes: Take[]
   selectedTakeId: string
   placements: PlacementResult[]
+  referenceAssets?: ReferenceAsset[]
 }
 
 export const imageModels = [

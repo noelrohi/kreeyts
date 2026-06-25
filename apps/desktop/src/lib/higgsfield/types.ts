@@ -38,6 +38,7 @@ export interface PlacementResult extends SeedPlacementResult {
 export interface Creative extends Omit<SeedCreative, "takes" | "placements"> {
   takes: Take[]
   placements: PlacementResult[]
+  referenceAssets?: ReferenceAsset[]
   outputDirectoryName?: string
 }
 
