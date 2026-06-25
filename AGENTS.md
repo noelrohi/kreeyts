@@ -16,6 +16,7 @@
 - Focus desktop typecheck: `bun --filter @kreeyts/desktop typecheck`.
 - Focus current Bun test files directly, for example `bun test apps/desktop/electron/higgsfield-output.test.ts`; there is no package `test` script yet.
 - Packaging: `bun run electron:dist`; run this when Electron Builder files, bundled assets, or packaging behavior changes.
+- Releases: follow `docs/ci.md`; keep `apps/desktop/package.json` and the `vX.Y.Z` tag in sync.
 
 ## Verification Order
 

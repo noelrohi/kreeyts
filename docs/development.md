@@ -23,6 +23,8 @@ Use Bun commands; do not add npm lockfiles.
 - `bun run build`: build all workspace packages.
 - `bun run electron:dist`: create packaged desktop artifacts.
 
+CI and release automation are documented in [CI/CD](./ci.md).
+
 Authentication should normally happen inside Kreeyts through the Sign in action.
 
 ## Completion Checks

@@ -1,0 +1,119 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, for example v1.0.0"
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+      - name: Validate release tag
+        run: |
+          case "$RELEASE_TAG" in
+            v*.*.*) ;;
+            *)
+              echo "Release tag must look like vX.Y.Z; got $RELEASE_TAG" >&2
+              exit 1
+              ;;
+          esac
+
+          PACKAGE_VERSION=$(node -p "require('./apps/desktop/package.json').version")
+          if [ "v$PACKAGE_VERSION" != "$RELEASE_TAG" ]; then
+            echo "apps/desktop/package.json version ($PACKAGE_VERSION) does not match $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+      - name: Extract changelog for release notes
+        id: changelog
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          NOTES=""
+
+          if [ -f CHANGELOG.md ]; then
+            NOTES=$(awk -v ver="$VERSION" '
+              /^## \[/ {
+                if (found) exit
+                if (index($0, "["ver"]")) found=1
+              }
+              found { print }
+            ' CHANGELOG.md)
+          fi
+
+          if [ -z "$NOTES" ]; then
+            NOTES="Release $RELEASE_TAG"
+          fi
+
+          {
+            echo "notes<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_NOTES: ${{ steps.changelog.outputs.notes }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" \
+              --title "Kreeyts $RELEASE_TAG" \
+              --notes "$RELEASE_NOTES" \
+              --latest
+          else
+            gh release create "$RELEASE_TAG" \
+              --title "Kreeyts $RELEASE_TAG" \
+              --notes "$RELEASE_NOTES" \
+              --latest \
+              --verify-tag
+          fi
+
+  publish-electron:
+    needs: create-release
+    permissions:
+      contents: write
+    runs-on: macos-14
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build and publish Electron app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.APPLE_CERTIFICATE }}
+          CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          EP_GH_IGNORE_TIME: true
+        run: bun run --cwd apps/desktop dist -- --mac dmg zip --arm64 --publish always -c.publish.releaseType=release

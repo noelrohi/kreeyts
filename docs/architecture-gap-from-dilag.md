@@ -32,13 +32,14 @@ Resolved foundation gaps:
 - Added a small Desktop Bridge product contract around Host App Info.
 - Added a shared Electron IPC channel registry and one real IPC domain, `app-info`.
 - Added a Higgsfield CLI bridge and Electron Host adapter for bundled-first executable resolution, install/auth/workspace status, sign-in, credit checks, model listing, asset picking/upload, generation, output opening, cancellation, and streamed command output.
+- Added desktop CI/release automation and packaged-app auto-update bootstrap.
 
 Still deferred by design:
 
 - project/session models,
 - generated artifact policy,
 - runtime bootstrap and event stream,
-- native menu, zoom, theme, updater, and release automation.
+- native menu, zoom, and theme polish.
 
 ## Original Baseline Inventory
 
