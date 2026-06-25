@@ -24,7 +24,25 @@ import { cn } from "@/lib/utils"
 
 export type ModelOption = { id: string; label: string; hint: string | null }
 
+export type ModelRecommendation = {
+  key: string
+  match: string | string[]
+}
+
 const MODEL_FAVOURITES_STORAGE_KEY = "assetwell.model-favourites.v1"
+
+function normalizeModelSearchValue(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "")
+}
+
+function matchesRecommendation(model: ModelOption, match: string | string[]) {
+  const modelValue = normalizeModelSearchValue(`${model.id} ${model.label}`)
+  const values = Array.isArray(match) ? match : [match]
+
+  return values.some((value) =>
+    modelValue.includes(normalizeModelSearchValue(value)),
+  )
+}
 
 function readFavouriteModelIds() {
   if (typeof window === "undefined") return []
@@ -48,10 +66,12 @@ export function ModelPicker({
   models,
   value,
   onChange,
+  recommendations = [],
 }: {
   models: ModelOption[]
   value: string
   onChange: (id: string) => void
+  recommendations?: ModelRecommendation[]
 }) {
   const [open, setOpen] = React.useState(false)
   const [favouriteIds, setFavouriteIds] = React.useState<string[]>(() =>
@@ -63,7 +83,24 @@ export function ModelPicker({
     [favouriteIds],
   )
   const favouriteModels = models.filter((model) => favouriteSet.has(model.id))
-  const otherModels = models.filter((model) => !favouriteSet.has(model.id))
+  const recommendedModels = recommendations.flatMap((recommendation) => {
+    const model = models.find((item) =>
+      matchesRecommendation(item, recommendation.match),
+    )
+    return model ? [model] : []
+  })
+  const recommendedSet = React.useMemo(
+    () => new Set(recommendedModels.map((model) => model.id)),
+    [recommendedModels],
+  )
+  const visibleRecommendedModels = recommendedModels.filter(
+    (model, index, array) =>
+      !favouriteSet.has(model.id) &&
+      array.findIndex((item) => item.id === model.id) === index,
+  )
+  const otherModels = models.filter(
+    (model) => !favouriteSet.has(model.id) && !recommendedSet.has(model.id),
+  )
   const selectedIsFavourite = selected ? favouriteSet.has(selected.id) : false
 
   function toggleFavourite(modelId: string) {
@@ -149,9 +186,19 @@ export function ModelPicker({
                 {favouriteModels.map(renderModelItem)}
               </CommandGroup>
             )}
+            {visibleRecommendedModels.length > 0 && (
+              <CommandGroup heading="Recommended">
+                {visibleRecommendedModels.map(renderModelItem)}
+              </CommandGroup>
+            )}
             {otherModels.length > 0 && (
               <CommandGroup
-                heading={favouriteModels.length > 0 ? "All models" : undefined}
+                heading={
+                  favouriteModels.length > 0 ||
+                  visibleRecommendedModels.length > 0
+                    ? "All models"
+                    : undefined
+                }
               >
                 {otherModels.map(renderModelItem)}
               </CommandGroup>

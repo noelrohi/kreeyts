@@ -11,7 +11,10 @@ import {
 } from "@tabler/icons-react"
 import { toast } from "sonner"
 
-import { ModelPicker } from "@/components/blocks/composer/model-picker"
+import {
+  ModelPicker,
+  type ModelRecommendation,
+} from "@/components/blocks/composer/model-picker"
 import {
   Popover,
   PopoverContent,
@@ -26,6 +29,12 @@ import {
   type BaseRatio,
 } from "@/lib/placements"
 import { cn } from "@/lib/utils"
+
+const recommendedImageModels: ModelRecommendation[] = [
+  { key: "gpt-image-2", match: ["gpt image 2", "gpt_image_2"] },
+  { key: "nano-banana-2", match: ["nano banana 2", "nano_banana_2"] },
+  { key: "nano-banana-pro", match: ["nano banana pro", "nano_banana_pro"] },
+]
 
 export function ImageComposer() {
   const navigate = useNavigate()
@@ -222,7 +231,12 @@ export function ImageComposer() {
             </PopoverContent>
           </Popover>
 
-          <ModelPicker models={imageModels} value={model} onChange={setModel} />
+          <ModelPicker
+            models={imageModels}
+            value={model}
+            onChange={setModel}
+            recommendations={recommendedImageModels}
+          />
 
           <Popover
             onOpenChange={(open) => {

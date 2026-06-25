@@ -8,7 +8,10 @@ import {
 import { useQueryState } from "nuqs"
 import { toast } from "sonner"
 
-import { ModelPicker } from "@/components/blocks/composer/model-picker"
+import {
+  ModelPicker,
+  type ModelRecommendation,
+} from "@/components/blocks/composer/model-picker"
 import {
   Popover,
   PopoverContent,
@@ -19,6 +22,18 @@ import { useHiggsfieldApp } from "@/lib/higgsfield"
 import { videoPlacements, type VideoPlacement } from "@/lib/placements"
 import { videoPlacementSelectionParser } from "@/lib/query-state"
 import { cn } from "@/lib/utils"
+
+const recommendedVideoModels: ModelRecommendation[] = [
+  { key: "seedance-latest", match: "seedance" },
+  {
+    key: "veo-3-1-fast",
+    match: ["veo 3.1 fast", "veo3.1 fast", "veo3_1_fast", "veo31fast"],
+  },
+  {
+    key: "veo-3-1-pro",
+    match: ["veo 3.1 pro", "veo3.1 pro", "veo3_1_pro", "veo31pro"],
+  },
+]
 
 export function VideoComposer() {
   const {
@@ -104,6 +119,7 @@ export function VideoComposer() {
               models={videoModels}
               value={model}
               onChange={setModel}
+              recommendations={recommendedVideoModels}
             />
 
             <Popover>
