@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test"
 import type {
   AssetwellLibrarySnapshot,
+  AssetwellUpdateInfo,
   DesktopBridge,
   HiggsfieldCommandOutputEvent,
 } from "@assetwell/desktop-bridge"
@@ -24,6 +25,10 @@ type BridgeInvokePath =
       "onCommandOutput"
     >}`
   | `library.${Extract<keyof DesktopBridge["library"], string>}`
+  | `updater.${Exclude<
+      Extract<keyof DesktopBridge["updater"], string>,
+      "onDownloadedUpdate"
+    >}`
 
 interface BridgeInvokeCase {
   call: (bridge: DesktopBridge) => Promise<unknown>
@@ -167,6 +172,14 @@ const bridgeInvocationCases = {
       { path: "/tmp/video.mp4", title: "Video" },
     ],
   },
+  "updater.getDownloadedUpdate": {
+    call: (bridge) => bridge.updater.getDownloadedUpdate(),
+    expected: [IPC_CHANNELS.updater.getDownloadedUpdate],
+  },
+  "updater.installDownloadedUpdate": {
+    call: (bridge) => bridge.updater.installDownloadedUpdate(),
+    expected: [IPC_CHANNELS.updater.installDownloadedUpdate],
+  },
 } satisfies Record<BridgeInvokePath, BridgeInvokeCase>
 
 describe("preload desktop bridge", () => {
@@ -180,7 +193,12 @@ describe("preload desktop bridge", () => {
     const bridge = exposedInMainWorld<DesktopBridge>("assetwell")
 
     expect(bridge).toBeDefined()
-    expect(Object.keys(bridge)).toEqual(["app", "higgsfield", "library"])
+    expect(Object.keys(bridge)).toEqual([
+      "app",
+      "higgsfield",
+      "library",
+      "updater",
+    ])
   })
 
   test("maps every invoking bridge method to the expected IPC channel", async () => {
@@ -224,6 +242,35 @@ describe("preload desktop bridge", () => {
     ])
     expect(
       ipcRendererListeners.has(IPC_CHANNELS.higgsfield.commandOutput),
+    ).toBe(false)
+  })
+
+  test("subscribes and unsubscribes downloaded update events", () => {
+    const bridge = exposedInMainWorld<DesktopBridge>("assetwell")
+    const received: AssetwellUpdateInfo[] = []
+    const update: AssetwellUpdateInfo = {
+      version: "0.0.3",
+      currentVersion: "0.0.2",
+      releaseDate: "2026-06-26T00:00:00.000Z",
+    }
+
+    const unsubscribe = bridge.updater.onDownloadedUpdate((event) => {
+      received.push(event)
+    })
+    const handler = ipcRendererListeners.get(
+      IPC_CHANNELS.updater.downloadedUpdate,
+    )
+
+    if (!handler) throw new Error("Expected downloaded update listener.")
+    handler({} as IpcRendererEvent, update)
+    expect(received).toEqual([update])
+
+    unsubscribe()
+    expect(removedIpcRendererListeners).toEqual([
+      [IPC_CHANNELS.updater.downloadedUpdate, handler],
+    ])
+    expect(
+      ipcRendererListeners.has(IPC_CHANNELS.updater.downloadedUpdate),
     ).toBe(false)
   })
 })

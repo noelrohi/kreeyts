@@ -15,7 +15,7 @@ import {
   resolveLocalAssetUrl,
 } from "./local-store"
 import { installApplicationMenu } from "./menu"
-import { startAutoUpdates } from "./updater"
+import { registerUpdaterIpc, startAutoUpdates } from "./updater"
 
 const APP_NAME = "Assetwell"
 const isDev = Boolean(process.env.VITE_DEV_SERVER_URL)
@@ -124,6 +124,7 @@ app.whenReady().then(() => {
   registerAppInfoIpc()
   registerHiggsfieldIpc()
   registerLibraryIpc()
+  registerUpdaterIpc()
   createWindow()
   startAutoUpdates()
 })

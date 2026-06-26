@@ -29,4 +29,9 @@ export const IPC_CHANNELS = {
     exportCreativeZip: "assetwell:library:export-creative-zip",
     exportVideo: "assetwell:library:export-video",
   },
+  updater: {
+    getDownloadedUpdate: "assetwell:updater:get-downloaded-update",
+    installDownloadedUpdate: "assetwell:updater:install-downloaded-update",
+    downloadedUpdate: "assetwell:updater:downloaded-update",
+  },
 } as const

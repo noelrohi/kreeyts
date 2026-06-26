@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron"
 import type {
+  AssetwellUpdateInfo,
   DesktopBridge,
   HiggsfieldCommandOutputEvent,
 } from "@assetwell/desktop-bridge"
@@ -70,6 +71,29 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke(IPC_CHANNELS.library.exportCreativeZip, request),
     exportVideo: (request) =>
       ipcRenderer.invoke(IPC_CHANNELS.library.exportVideo, request),
+  },
+  updater: {
+    getDownloadedUpdate: () =>
+      ipcRenderer.invoke(IPC_CHANNELS.updater.getDownloadedUpdate),
+    installDownloadedUpdate: () =>
+      ipcRenderer.invoke(IPC_CHANNELS.updater.installDownloadedUpdate),
+    onDownloadedUpdate: (listener) => {
+      const handler = (
+        _event: Electron.IpcRendererEvent,
+        update: AssetwellUpdateInfo,
+      ) => {
+        listener(update)
+      }
+
+      ipcRenderer.on(IPC_CHANNELS.updater.downloadedUpdate, handler)
+
+      return () => {
+        ipcRenderer.removeListener(
+          IPC_CHANNELS.updater.downloadedUpdate,
+          handler,
+        )
+      }
+    },
   },
 }
 

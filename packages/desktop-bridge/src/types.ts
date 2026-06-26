@@ -297,6 +297,13 @@ export interface AssetwellExportVideoResult {
   filePath: string
 }
 
+export interface AssetwellUpdateInfo {
+  version: string
+  currentVersion: string
+  releaseDate?: string
+  releaseNotes?: string
+}
+
 export interface DesktopBridge {
   app: {
     getInfo(): Promise<HostAppInfo>
@@ -341,5 +348,12 @@ export interface DesktopBridge {
     exportVideo(
       request: AssetwellExportVideoRequest,
     ): Promise<AssetwellExportVideoResult | null>
+  }
+  updater: {
+    getDownloadedUpdate(): Promise<AssetwellUpdateInfo | null>
+    installDownloadedUpdate(): Promise<boolean>
+    onDownloadedUpdate(
+      listener: (update: AssetwellUpdateInfo) => void,
+    ): () => void
   }
 }

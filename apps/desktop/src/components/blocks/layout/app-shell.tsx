@@ -1,5 +1,6 @@
 import { Fragment, type CSSProperties, type ReactNode } from "react"
 import { Link, Outlet, useRouterState } from "@tanstack/react-router"
+import { IconDownload, IconLoader2 } from "@tabler/icons-react"
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router"
 
 import { PAGE_HEADER_ACTIONS_SLOT } from "@/components/blocks/layout/page-header-actions"
@@ -18,7 +19,9 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
 import { useHiggsfieldApp } from "@/lib/higgsfield"
+import { useUpdater } from "@/lib/updater"
 import { cn } from "@/lib/utils"
 
 function PageBreadcrumb() {
@@ -90,19 +93,49 @@ function JobsIndicator() {
 
 function PersistentSidebarTrigger() {
   const { state } = useSidebar()
+  const { downloadedUpdate, installing, installDownloadedUpdate } = useUpdater()
   const isCollapsed = state === "collapsed"
+  const showUpdateButton = Boolean(downloadedUpdate)
 
   return (
-    <SidebarTrigger
-      className={cn(
-        "no-drag fixed z-50 size-[var(--titlebar-control-size)] -translate-y-1/2 rounded-md border border-transparent shadow-none transition-[background-color,color,border-color] duration-150 ease-out hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 [&>svg]:size-3.5",
-        "left-[var(--titlebar-control-left)] top-[var(--titlebar-control-center-y)]",
-        isCollapsed
-          ? "bg-background/70 text-muted-foreground/75 backdrop-blur supports-[backdrop-filter]:bg-background/55"
-          : "bg-sidebar/70 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground supports-[backdrop-filter]:bg-sidebar/55",
+    <>
+      <SidebarTrigger
+        className={cn(
+          "no-drag fixed z-50 size-[var(--titlebar-control-size)] -translate-y-1/2 rounded-md border border-transparent shadow-none transition-[background-color,color,border-color] duration-150 ease-out hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 [&>svg]:size-3.5",
+          "left-[var(--titlebar-control-left)] top-[var(--titlebar-control-center-y)]",
+          isCollapsed
+            ? "bg-background/70 text-muted-foreground/75 backdrop-blur supports-[backdrop-filter]:bg-background/55"
+            : "bg-sidebar/70 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground supports-[backdrop-filter]:bg-sidebar/55",
+        )}
+        aria-label="Toggle sidebar"
+      />
+      {showUpdateButton && (
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          className={cn(
+            "no-drag fixed z-50 size-[var(--titlebar-control-size)] -translate-y-1/2 rounded-md border border-ember/30 bg-ember/10 p-0 text-ember shadow-none transition-all duration-200 ease-out hover:border-ember/50 hover:bg-ember/20 hover:text-ember focus-visible:ring-2 focus-visible:ring-ember/30 [&>svg]:size-3.5",
+            "left-[calc(var(--titlebar-control-left)+var(--titlebar-control-size)+4px)] top-[var(--titlebar-control-center-y)]",
+            !isCollapsed &&
+              "bg-sidebar/70 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground supports-[backdrop-filter]:bg-sidebar/55",
+          )}
+          onClick={() => void installDownloadedUpdate()}
+          disabled={installing}
+          aria-label="Restart and install update"
+          title={
+            downloadedUpdate
+              ? `Restart and install Assetwell ${downloadedUpdate.version}`
+              : "Restart and install update"
+          }
+        >
+          {installing ? (
+            <IconLoader2 className="animate-spin" />
+          ) : (
+            <IconDownload />
+          )}
+        </Button>
       )}
-      aria-label="Toggle sidebar"
-    />
+    </>
   )
 }
 
