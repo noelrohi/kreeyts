@@ -7,6 +7,12 @@ and this project uses semantic version tags for desktop releases.
 
 ## [Unreleased]
 
+## [0.0.6] - 2026-06-26
+
+### Added
+
+- Assetwell now shows a friendly in-app "What's New" dialog once per version, using the GitHub release notes for the version you're running.
+
 ## [0.0.5] - 2026-06-26
 
 ### Changed
