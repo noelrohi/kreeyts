@@ -14,6 +14,7 @@ import {
   parseByteRange,
   resolveLocalAssetUrl,
 } from "./local-store"
+import { installApplicationMenu } from "./menu"
 import { startAutoUpdates } from "./updater"
 
 const APP_NAME = "Assetwell"
@@ -118,6 +119,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
   setDockIcon()
+  installApplicationMenu()
   registerLocalAssetProtocol()
   registerAppInfoIpc()
   registerHiggsfieldIpc()

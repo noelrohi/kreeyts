@@ -49,7 +49,7 @@ Add these repository secrets before the first signed release:
 
 ## Auto-updates
 
-Assetwell uses `electron-updater` with the GitHub provider configured in `apps/desktop/package.json`. Packaged apps check for updates shortly after launch, download updates in the background, notify the user when an update is ready, and install on app quit.
+Assetwell uses `electron-updater` with the GitHub provider configured in `apps/desktop/package.json`. Packaged apps check for updates shortly after launch, expose **Check for Updates…** in the app menu, download updates in the background, notify the user when an update is ready, and install on app quit.
 
 The macOS updater needs both `zip` output and `latest-mac.yml`; the release workflow publishes `dmg` and `zip` so GitHub Releases can serve manual downloads and update metadata. Set `ASSETWELL_DISABLE_AUTO_UPDATES=1` to disable checks while debugging a packaged app.
 
@@ -57,5 +57,4 @@ The macOS updater needs both `zip` output and `latest-mac.yml`; the release work
 
 - Windows/Linux release jobs and signing.
 - A packaged-app smoke test after signing/notarization.
-- A renderer/menu surface for manual “Check for updates”.
 - Public download page or stable download URL.
