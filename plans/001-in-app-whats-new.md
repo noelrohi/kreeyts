@@ -489,12 +489,18 @@ keep it within the existing tree). Place it as a sibling of `RouterProvider`:
 
 ```tsx
 import { WhatsNewDialog } from "@/lib/whats-new"
-// ...
-;<UpdaterProvider>
-  <RouterProvider router={router} />
-  <WhatsNewDialog />
-  <Toaster theme="dark" position="bottom-center" />
-</UpdaterProvider>
+
+createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <HiggsfieldProvider>
+      <UpdaterProvider>
+        <RouterProvider router={router} />
+        <WhatsNewDialog />
+        <Toaster theme="dark" position="bottom-center" />
+      </UpdaterProvider>
+    </HiggsfieldProvider>
+  </React.StrictMode>,
+)
 ```
 
 **Verify**: `bun --filter @assetwell/desktop typecheck` → exit 0.
