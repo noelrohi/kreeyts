@@ -7,6 +7,12 @@ and this project uses semantic version tags for desktop releases.
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-06-26
+
+### Changed
+
+- Published a patch release to validate the titlebar update button.
+
 ## [0.0.3] - 2026-06-26
 
 ### Added
