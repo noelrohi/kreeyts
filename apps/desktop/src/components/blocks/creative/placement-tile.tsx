@@ -6,7 +6,12 @@ import {
 } from "@tabler/icons-react"
 
 import type { PlacementResult } from "@/lib/higgsfield"
-import { aspectOf, placementSpecs, type ImagePlacement } from "@/lib/placements"
+import {
+  PLACEMENT_COMING_SOON_LABEL,
+  aspectOf,
+  placementSpecs,
+  type ImagePlacement,
+} from "@/lib/placements"
 import { cn } from "@/lib/utils"
 
 type PlacementTilePlacement =
@@ -68,6 +73,7 @@ export function PlacementTile({
   canRegenerate,
   canReveal,
   unavailableReason,
+  unavailableLabel = PLACEMENT_COMING_SOON_LABEL,
 }: {
   p: PlacementTilePlacement
   active: boolean
@@ -77,6 +83,7 @@ export function PlacementTile({
   canRegenerate: boolean
   canReveal: boolean
   unavailableReason?: string
+  unavailableLabel?: string
 }) {
   const spec = placementSpecs[p.size]
   const isReady = p.status === "ready" && Boolean(p.url)
@@ -121,7 +128,7 @@ export function PlacementTile({
       <div className="flex shrink-0 items-center">
         {isUnavailable && (
           <span className="rounded-full bg-muted/45 px-2.5 py-1 text-[0.65rem] font-medium text-muted-foreground">
-            Paused
+            {unavailableLabel}
           </span>
         )}
 

@@ -1,0 +1,116 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1024"
+  height="1024"
+  viewBox="0 0 1024 1024"
+  role="img"
+  aria-label="Assetwell A app icon"
+>
+  <defs>
+    <radialGradient
+      id="base"
+      cx="0"
+      cy="0"
+      r="1"
+      gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(336 246) rotate(52) scale(880)"
+    >
+      <stop offset="0" stop-color="#202026" />
+      <stop offset="0.44" stop-color="#0c0c0f" />
+      <stop offset="0.80" stop-color="#030304" />
+      <stop offset="1" stop-color="#000000" />
+    </radialGradient>
+    <linearGradient
+      id="rim"
+      x1="184"
+      y1="88"
+      x2="808"
+      y2="944"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.20" />
+      <stop offset="0.52" stop-color="#ffffff" stop-opacity="0.045" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <radialGradient
+      id="beam"
+      cx="0"
+      cy="0"
+      r="1"
+      gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(744 344) rotate(122) scale(340)"
+    >
+      <stop offset="0" stop-color="#e7a23c" stop-opacity="0.20" />
+      <stop offset="0.58" stop-color="#e7a23c" stop-opacity="0.05" />
+      <stop offset="1" stop-color="#e7a23c" stop-opacity="0" />
+    </radialGradient>
+    <clipPath id="tileClip">
+      <rect x="64" y="72" width="896" height="896" rx="242" />
+    </clipPath>
+    <filter
+      id="markGlow"
+      x="-24%"
+      y="-24%"
+      width="148%"
+      height="148%"
+      color-interpolation-filters="sRGB"
+    >
+      <feDropShadow
+        dx="0"
+        dy="0"
+        stdDeviation="5"
+        flood-color="#ffffff"
+        flood-opacity="0.10"
+      />
+    </filter>
+  </defs>
+
+  <g clip-path="url(#tileClip)">
+    <rect x="64" y="72" width="896" height="896" rx="242" fill="url(#base)" />
+    <circle cx="744" cy="344" r="316" fill="url(#beam)" />
+    <path
+      d="M222 116C430 76 680 92 850 214"
+      fill="none"
+      stroke="#ffffff"
+      stroke-width="6"
+      stroke-linecap="round"
+      opacity="0.075"
+    />
+    <rect
+      x="67"
+      y="75"
+      width="890"
+      height="890"
+      rx="239"
+      fill="none"
+      stroke="url(#rim)"
+      stroke-width="5"
+    />
+  </g>
+
+  <!--
+    "A" assembled from placement-style tiles: two tall rectangular bars
+    splayed into the legs, with an ember crossbar reading as a placement.
+  -->
+  <g transform="translate(0 -8)" filter="url(#markGlow)">
+    <rect
+      x="372"
+      y="300"
+      width="128"
+      height="480"
+      rx="44"
+      fill="#f6f3ec"
+      transform="rotate(17 436 540)"
+    />
+    <rect
+      x="524"
+      y="300"
+      width="128"
+      height="480"
+      rx="44"
+      fill="#f6f3ec"
+      transform="rotate(-17 588 540)"
+    />
+    <rect x="389" y="566" width="246" height="92" rx="26" fill="#e7a23c" />
+  </g>
+</svg>

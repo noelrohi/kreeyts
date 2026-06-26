@@ -1,6 +1,6 @@
 # Assetwell Architecture
 
-Assetwell is a small Electron desktop wrapper for the Higgsfield CLI. The architecture should grow from that product behavior, not from Dilag's larger product model.
+Assetwell is a small Electron desktop wrapper for the Higgsfield CLI with a public marketing/download site. The architecture should grow from that product behavior, not from Dilag's larger product model.
 
 Higgsfield owns authentication, accounts, workspaces, models, generation, uploads, Soul ID, Marketing Studio, and version reporting through the Higgsfield CLI. Assetwell provides a native desktop host, a typed bridge, status checks, sign-in launch, a local asset picker, generation/upload actions, exact image output post-processing, local output folders, a persisted local library snapshot, output opening, and streamed progress.
 
@@ -10,8 +10,10 @@ Higgsfield owns authentication, accounts, workspaces, models, generation, upload
 - `apps/desktop/src/components/blocks`: product-specific renderer blocks grouped by surface (`layout`, `create`, `creative`, `videos`, `composer`). Keep page-local UI here before promoting anything to shared primitives.
 - `apps/desktop/electron`: Electron Host code. Native capabilities, IPC channel names, and Electron APIs stay here.
 - `apps/desktop/electron/updater.ts`: packaged-app auto-update bootstrap backed by GitHub release metadata.
+- `apps/www`: TanStack Start marketing site. It owns public pages, canonical/OG metadata via `VITE_SITE_URL`, and the `/api/download` proxy for latest release assets.
+- `packages/product`: shared product/domain registries used by app surfaces, including placement specs/availability, download-platform policy, and shared brand assets.
 - `packages/desktop-bridge`: the Desktop Bridge type contract shared by the renderer and Electron Host.
-- `packages/ui`: reusable UI primitives only. Product-specific blocks stay in the desktop app.
+- `packages/ui`: reusable UI primitives only. Product-specific blocks stay in the apps.
 
 ## Desktop Bridge
 
@@ -78,6 +80,10 @@ Assetwell has two storage locations:
 - **Assetwell Output Root:** defaults to `~/Assetwell` and can be changed by the user; generated images/videos are written as plain files in folder-per-creative directories. The `Brand Memory/` child folder stores reusable reference images that the renderer scans through the library bridge.
 
 The local library store remains a convenience index and can be rebuilt from future import/reindex flows. On launch Assetwell reads SQLite first, then falls back to the JSON snapshot and migrates it forward. Generated artifacts and Brand Memory files are user-owned files. If Assetwell closes while a CLI command is pending, the next launch marks that local item as failed/interrupted rather than pretending Higgsfield job state is recoverable.
+
+## Website Download Policy
+
+The website download page and API use `@assetwell/product/downloads` as the single platform registry. macOS is currently available; Windows and Linux are listed as coming soon. `/api/download` only resolves release assets for platforms marked available and falls back to the GitHub release page when no matching macOS asset exists.
 
 ## Deferred Seams
 

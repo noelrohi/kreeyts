@@ -1,6 +1,6 @@
 # Creative Sizes
 
-Supported video and image sizes with their aspect ratios.
+Supported video and image sizes with their aspect ratios. Canonical machine-readable specs live in `packages/product/src/placements.ts`.
 
 ## Video sizes
 
@@ -13,7 +13,7 @@ Supported video and image sizes with their aspect ratios.
 
 ## Image sizes
 
-`728 × 90` and `320 × 50` are currently paused while narrow-banner output quality is tuned.
+`728 × 90` and `320 × 50` are marked **Coming soon**.
 
 | Size (px)  | Aspect ratio       |
 | ---------- | ------------------ |

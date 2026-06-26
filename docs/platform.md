@@ -36,17 +36,17 @@ Flow:
 
 - Generate produces **1 base image**; the user can then generate placements from that hero.
 - Then **one-click "Generate available sizes"** — the (B) checkpoint flow: review the base before mass-producing the currently-enabled placements.
-- Placements = **regenerate at each target size, referencing the base image**. Ultra-wide banner sizes (`728×90`, `320×50`) are paused until their quality is reliable.
+- Placements = **regenerate at each target size, referencing the base image**. Ultra-wide banner sizes (`728×90`, `320×50`) are coming soon.
 - Each available placement tile is single-shot with its own **Regenerate**. Failures are **isolated** — one bad size never kills the batch.
 - **Parallel creatives** are allowed — a global "X jobs running" indicator.
 
 ## 4. Supported sizes
 
 - **Image active (6):** 1200×628, 1024×768, 768×1024, 300×250, 600×300, 480×400.
-- **Image paused (2):** 728×90, 320×50.
+- **Image coming soon (2):** 728×90, 320×50.
 - **Video (4):** 1280×720, 720×1280, 1080×1080, 300×250.
 
-Canonical target sizes and aspect ratios live in [`creative-sizes.md`](./creative-sizes.md). The renderer copy in `apps/desktop/src/lib/placements.ts` should stay in sync with that doc.
+Canonical target sizes, display labels, availability, and unavailable placement copy live in `packages/product/src/placements.ts`; [`creative-sizes.md`](./creative-sizes.md) documents the same matrix for humans.
 
 ## 5. Video
 
@@ -81,7 +81,7 @@ Canonical target sizes and aspect ratios live in [`creative-sizes.md`](./creativ
 
 ## 10. UI implementation status
 
-The renderer is built (Darkroom Gallery aesthetic, TanStack Router, shadcn) and now routes real generation through the Higgsfield bridge. Local library state is persisted in SQLite with the previous JSON snapshot retained as a fallback, outputs are written to the configurable `~/Assetwell`-style output root, image/video outputs are post-processed to exact target dimensions, narrow banner placements are paused pending quality tuning, and auth/zero-credit states block generation. Remaining v1 hardening: durable recovery for Higgsfield jobs after app exit, richer model-parameter UX beyond aspect ratio, and a reindex/import flow for existing output folders.
+The renderer is built (Darkroom Gallery aesthetic, TanStack Router, shadcn) and now routes real generation through the Higgsfield bridge. Local library state is persisted in SQLite with the previous JSON snapshot retained as a fallback, outputs are written to the configurable `~/Assetwell`-style output root, image/video outputs are post-processed to exact target dimensions, narrow banner placements are marked coming soon, and auth/zero-credit states block generation. Remaining v1 hardening: durable recovery for Higgsfield jobs after app exit, richer model-parameter UX beyond aspect ratio, and a reindex/import flow for existing output folders.
 
 ---
 

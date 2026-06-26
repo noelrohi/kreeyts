@@ -91,65 +91,91 @@ function JobsIndicator() {
   )
 }
 
-function PersistentSidebarTrigger() {
-  const { state } = useSidebar()
+const titlebarControlClassName =
+  "no-drag size-[var(--titlebar-control-size)] rounded-md border border-transparent shadow-none transition-[background-color,color,border-color] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-ring/50 [&>svg]:size-3.5"
+
+const titlebarBackgroundControlClassName =
+  "bg-background/70 text-muted-foreground/75 backdrop-blur hover:bg-accent hover:text-foreground supports-[backdrop-filter]:bg-background/55"
+
+const titlebarSidebarControlClassName =
+  "bg-sidebar/70 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground supports-[backdrop-filter]:bg-sidebar/55"
+
+function TitlebarSidebarTrigger({ className }: { className?: string }) {
+  return (
+    <SidebarTrigger
+      className={cn(titlebarControlClassName, className)}
+      aria-label="Toggle sidebar"
+    />
+  )
+}
+
+function TitlebarUpdateButton({ className }: { className?: string }) {
   const { downloadedUpdate, installing, installDownloadedUpdate } = useUpdater()
-  const isCollapsed = state === "collapsed"
-  const showUpdateButton = Boolean(downloadedUpdate)
+
+  if (!downloadedUpdate) return null
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon-xs"
+      className={cn(
+        "no-drag size-[var(--titlebar-control-size)] rounded-md border border-ember/30 bg-ember/10 p-0 text-ember shadow-none transition-[background-color,color,border-color] duration-150 ease-out hover:border-ember/50 hover:bg-ember/20 hover:text-ember focus-visible:ring-2 focus-visible:ring-ember/30 [&>svg]:size-3.5",
+        className,
+      )}
+      onClick={() => void installDownloadedUpdate()}
+      disabled={installing}
+      aria-label="Restart and install update"
+      title={`Restart and install Assetwell ${downloadedUpdate.version}`}
+    >
+      {installing ? <IconLoader2 className="animate-spin" /> : <IconDownload />}
+    </Button>
+  )
+}
+
+function PersistentSidebarControls() {
+  const { state } = useSidebar()
+
+  if (state === "collapsed") return null
 
   return (
     <>
-      <SidebarTrigger
+      <TitlebarSidebarTrigger
         className={cn(
-          "no-drag fixed z-50 size-[var(--titlebar-control-size)] -translate-y-1/2 rounded-md border border-transparent shadow-none transition-[background-color,color,border-color] duration-150 ease-out hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 [&>svg]:size-3.5",
-          "left-[var(--titlebar-control-left)] top-[var(--titlebar-control-center-y)]",
-          isCollapsed
-            ? "bg-background/70 text-muted-foreground/75 backdrop-blur supports-[backdrop-filter]:bg-background/55"
-            : "bg-sidebar/70 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground supports-[backdrop-filter]:bg-sidebar/55",
+          "fixed left-[var(--titlebar-control-left)] top-[var(--titlebar-control-center-y)] z-50 -translate-y-1/2",
+          titlebarSidebarControlClassName,
         )}
-        aria-label="Toggle sidebar"
       />
-      {showUpdateButton && (
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          className={cn(
-            "no-drag fixed z-50 size-[var(--titlebar-control-size)] -translate-y-1/2 rounded-md border border-ember/30 bg-ember/10 p-0 text-ember shadow-none transition-all duration-200 ease-out hover:border-ember/50 hover:bg-ember/20 hover:text-ember focus-visible:ring-2 focus-visible:ring-ember/30 [&>svg]:size-3.5",
-            "left-[calc(var(--titlebar-control-left)+var(--titlebar-control-size)+4px)] top-[var(--titlebar-control-center-y)]",
-            !isCollapsed &&
-              "bg-sidebar/70 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground supports-[backdrop-filter]:bg-sidebar/55",
-          )}
-          onClick={() => void installDownloadedUpdate()}
-          disabled={installing}
-          aria-label="Restart and install update"
-          title={
-            downloadedUpdate
-              ? `Restart and install Assetwell ${downloadedUpdate.version}`
-              : "Restart and install update"
-          }
-        >
-          {installing ? (
-            <IconLoader2 className="animate-spin" />
-          ) : (
-            <IconDownload />
-          )}
-        </Button>
-      )}
+      <TitlebarUpdateButton
+        className={cn(
+          "fixed left-[calc(var(--titlebar-control-left)+var(--titlebar-control-step))] top-[var(--titlebar-control-center-y)] z-50 -translate-y-1/2",
+          titlebarSidebarControlClassName,
+        )}
+      />
     </>
+  )
+}
+
+function CollapsedTitlebarControls() {
+  return (
+    <div className="no-drag flex shrink-0 items-center gap-1">
+      <TitlebarSidebarTrigger className={titlebarBackgroundControlClassName} />
+      <TitlebarUpdateButton />
+    </div>
   )
 }
 
 function InsetHeader() {
   const { state } = useSidebar()
+  const isCollapsed = state === "collapsed"
 
   return (
     <header
       className={cn(
-        "drag flex h-[52px] shrink-0 items-center gap-3 px-5 transition-[padding] duration-150 ease-out",
-        state === "collapsed" &&
-          "pl-[var(--titlebar-page-header-collapsed-left)]",
+        "drag flex h-[44px] shrink-0 items-center gap-2 px-5 transition-[padding] duration-150 ease-out",
+        isCollapsed && "pl-[var(--titlebar-control-left)]",
       )}
     >
+      {isCollapsed && <CollapsedTitlebarControls />}
       <div className="no-drag flex min-w-0 flex-1 items-center">
         <PageBreadcrumb />
       </div>
@@ -220,15 +246,13 @@ export function AppShell() {
             "--titlebar-control-offset-y": "1px",
             "--titlebar-control-center-y":
               "calc(var(--traffic-light-top) + (var(--traffic-light-size) / 2) + var(--titlebar-control-offset-y))",
-            "--titlebar-content-left":
-              "calc(var(--titlebar-control-left) + var(--titlebar-control-size) + 4px)",
-            "--titlebar-page-header-collapsed-left":
-              "calc(var(--titlebar-content-left) + var(--titlebar-control-size) + 8px)",
+            "--titlebar-control-step":
+              "calc(var(--titlebar-control-size) + 4px)",
           } as CSSProperties
         }
       >
         <AppSidebar />
-        <PersistentSidebarTrigger />
+        <PersistentSidebarControls />
         <SidebarInset className="min-h-0 overflow-hidden border-l border-border bg-background">
           <InsetHeader />
           <div className="min-h-0 flex-1 overflow-y-auto">

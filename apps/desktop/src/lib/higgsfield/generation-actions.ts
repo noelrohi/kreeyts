@@ -8,6 +8,7 @@ import type {
 } from "@assetwell/desktop-bridge"
 
 import {
+  IMAGE_PLACEMENT_UNAVAILABLE_TOAST,
   availableImagePlacements,
   isUnavailableImagePlacement,
   placementSpecs,
@@ -30,9 +31,6 @@ import type {
   VideoResult,
 } from "./types"
 import type { JobStatus } from "./types"
-
-const UNAVAILABLE_PLACEMENT_MESSAGE =
-  "This narrow banner size is paused while we tune output quality."
 
 export type CreativeReferenceAssetSnapshot = Pick<
   ReferenceAsset,
@@ -369,7 +367,7 @@ export function useHiggsfieldGenerationActions({
       if (!creative || !(await canGenerate()) || !bridge) return
 
       if (isUnavailableImagePlacement(placement)) {
-        toast(UNAVAILABLE_PLACEMENT_MESSAGE)
+        toast(IMAGE_PLACEMENT_UNAVAILABLE_TOAST)
         return
       }
 

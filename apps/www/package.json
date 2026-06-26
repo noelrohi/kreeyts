@@ -1,0 +1,40 @@
+{
+  "name": "@assetwell/www",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "scripts": {
+    "dev": "vite dev --port 3000",
+    "generate-routes": "tsr generate",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@assetwell/product": "workspace:*",
+    "@assetwell/ui": "workspace:*",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/rethink-sans": "^5.2.8",
+    "@tailwindcss/vite": "catalog:",
+    "@tanstack/react-router": "catalog:",
+    "@tanstack/react-start": "catalog:",
+    "lucide-react": "^0.545.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "catalog:"
+  },
+  "devDependencies": {
+    "@tanstack/router-cli": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

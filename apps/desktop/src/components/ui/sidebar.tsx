@@ -258,6 +258,7 @@ function Sidebar({
 function SidebarTrigger({
   className,
   onClick,
+  type = "button",
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { toggleSidebar } = useSidebar()
@@ -268,6 +269,7 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
+      type={type}
       className={cn("size-7", className)}
       onClick={(event) => {
         onClick?.(event)

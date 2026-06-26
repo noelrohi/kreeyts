@@ -1,0 +1,20 @@
+{
+  "name": "@assetwell/product",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./placements": "./src/placements.ts",
+    "./downloads": "./src/downloads.ts",
+    "./assets/fonts/grifter-bold.woff": "./assets/fonts/grifter-bold.woff"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

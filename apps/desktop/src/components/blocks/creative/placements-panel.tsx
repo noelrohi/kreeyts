@@ -3,9 +3,10 @@ import { IconLayoutGrid, IconLoader2 } from "@tabler/icons-react"
 import { PlacementTile } from "@/components/blocks/creative/placement-tile"
 import type { Creative, PlacementResult } from "@/lib/higgsfield"
 import {
+  IMAGE_PLACEMENT_AVAILABILITY_NOTE,
   availableImagePlacements,
+  getImagePlacementUnavailableReason,
   imagePlacements,
-  isUnavailableImagePlacement,
   type ImagePlacement,
 } from "@/lib/placements"
 import { cn } from "@/lib/utils"
@@ -100,7 +101,7 @@ export function PlacementsPanel({
       </button>
 
       <p className="px-0.5 text-xs leading-5 text-muted-foreground">
-        Narrow banners are paused while we tune quality.
+        {IMAGE_PLACEMENT_AVAILABILITY_NOTE}
       </p>
 
       {!canGenerate && (
@@ -113,18 +114,17 @@ export function PlacementsPanel({
 
       <div className="space-y-0.5 pt-1">
         {displayedPlacements.map((placement) => {
-          const isUnavailable = isUnavailableImagePlacement(placement.size)
+          const unavailableReason = getImagePlacementUnavailableReason(
+            placement.size,
+          )
+          const isUnavailable = Boolean(unavailableReason)
 
           return (
             <PlacementTile
               key={placement.size}
               p={placement}
               active={!isUnavailable && placement.size === selectedSize}
-              unavailableReason={
-                isUnavailable
-                  ? "Paused while we tune narrow banner quality."
-                  : undefined
-              }
+              unavailableReason={unavailableReason}
               canRegenerate={canGenerate && !isUnavailable}
               canReveal={Boolean(placement.filePath) && !isUnavailable}
               onSelect={() => {

@@ -1,135 +1,38 @@
-/**
- * Supported output sizes. Keep this renderer copy in sync with
- * docs/creative-sizes.md.
- *
- * Most Higgsfield image generation accepts aspect-ratio params, not exact output
- * dimensions, so the Electron Host post-processes image artifacts to these
- * exact target pixel sizes before saving them locally.
- */
-
-export const imagePlacements = [
-  "1200x628",
-  "1024x768",
-  "768x1024",
-  "728x90",
-  "320x50",
-  "300x250",
-  "600x300",
-  "480x400",
-] as const
-
-export const unavailableImagePlacements = ["728x90", "320x50"] as const
-export const availableImagePlacements = imagePlacements.filter(
-  (placement) =>
-    !unavailableImagePlacements.includes(
-      placement as UnavailableImagePlacement,
-    ),
-)
-
-export const videoPlacements = [
-  "1280x720",
-  "720x1280",
-  "1080x1080",
-  "300x250",
-] as const
-
-export type ImagePlacement = (typeof imagePlacements)[number]
-export type UnavailableImagePlacement =
-  (typeof unavailableImagePlacements)[number]
-export type VideoPlacement = (typeof videoPlacements)[number]
-export type Placement = ImagePlacement | VideoPlacement
-
-export type PlacementSpec = {
-  width: number
-  height: number
-  aspectRatio: `${number}:${number}`
-  label: string
-}
-
-export const placementSpecs: Record<Placement, PlacementSpec> = {
-  "1200x628": {
-    width: 1200,
-    height: 628,
-    aspectRatio: "300:157",
-    label: "Social landscape",
-  },
-  "1024x768": {
-    width: 1024,
-    height: 768,
-    aspectRatio: "4:3",
-    label: "Landscape",
-  },
-  "768x1024": {
-    width: 768,
-    height: 1024,
-    aspectRatio: "3:4",
-    label: "Portrait",
-  },
-  "728x90": {
-    width: 728,
-    height: 90,
-    aspectRatio: "364:45",
-    label: "Leaderboard",
-  },
-  "320x50": {
-    width: 320,
-    height: 50,
-    aspectRatio: "32:5",
-    label: "Mobile leaderboard",
-  },
-  "300x250": {
-    width: 300,
-    height: 250,
-    aspectRatio: "6:5",
-    label: "Medium rectangle",
-  },
-  "600x300": {
-    width: 600,
-    height: 300,
-    aspectRatio: "2:1",
-    label: "Half banner",
-  },
-  "480x400": {
-    width: 480,
-    height: 400,
-    aspectRatio: "6:5",
-    label: "Large rectangle",
-  },
-  "1280x720": {
-    width: 1280,
-    height: 720,
-    aspectRatio: "16:9",
-    label: "Wide video",
-  },
-  "720x1280": {
-    width: 720,
-    height: 1280,
-    aspectRatio: "9:16",
-    label: "Vertical video",
-  },
-  "1080x1080": {
-    width: 1080,
-    height: 1080,
-    aspectRatio: "1:1",
-    label: "Square video",
-  },
-}
-
-export function getPlacementSpec(placement: Placement) {
-  return placementSpecs[placement]
-}
-
-export function getPlacementAspectRatio(placement: Placement) {
-  return placementSpecs[placement].aspectRatio
-}
-
-export function isUnavailableImagePlacement(
-  placement: ImagePlacement,
-): placement is UnavailableImagePlacement {
-  return unavailableImagePlacements.includes(
-    placement as UnavailableImagePlacement,
-  )
-}
+export {
+  IMAGE_PLACEMENT_AVAILABILITY_NOTE,
+  IMAGE_PLACEMENT_UNAVAILABLE_REASON,
+  IMAGE_PLACEMENT_UNAVAILABLE_TOAST,
+  PLACEMENT_COMING_SOON_LABEL,
+  aspectOf,
+  availableImagePlacementSpecs,
+  availableImagePlacements,
+  formatPlacementSize,
+  getImagePlacementSpec,
+  getImagePlacementUnavailableLabel,
+  getImagePlacementUnavailableReason,
+  getPlacementAspectRatio,
+  getPlacementSpec,
+  imagePlacementSpecs,
+  imagePlacements,
+  isAvailableImagePlacement,
+  isUnavailableImagePlacement,
+  placementSpecs,
+  unavailableImagePlacementSpecs,
+  unavailableImagePlacements,
+  videoPlacementSpecs,
+  videoPlacements,
+} from "@assetwell/product/placements"
+export type {
+  AvailableImagePlacement,
+  ImagePlacement,
+  ImagePlacementSpec,
+  Placement,
+  PlacementAvailability,
+  PlacementSpec,
+  PlacementSpecWithId,
+  UnavailableImagePlacement,
+  VideoPlacement,
+} from "@assetwell/product/placements"
 
 /** Aspect-ratio choices offered for the *base* creative in the composer. */
 export const baseRatios = [
@@ -186,10 +89,6 @@ export function nearestBaseRatio(
 
     return nextDistance < bestDistance ? next : best
   })
-}
-
-export function aspectOf(width: number, height: number) {
-  return `${width} / ${height}`
 }
 
 export function ratioNumber(width: number, height: number) {

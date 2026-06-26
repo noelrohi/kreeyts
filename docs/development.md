@@ -5,6 +5,8 @@
 - Package manager: Bun (`bun@1.2.14`).
 - Task runner: Turbo.
 - Desktop app: Electron, Vite, React, Tailwind v4, tsdown.
+- Website app: TanStack Start, Vite, React, Tailwind v4.
+- Shared product/domain package: `packages/product`.
 - Wrapped executable: pinned `@higgsfield/cli` in `apps/desktop`, with global `higgsfield` used only as a fallback.
 
 Use Bun commands; do not add npm lockfiles.
@@ -15,6 +17,7 @@ Use Bun commands; do not add npm lockfiles.
 
 - `bun run dev`: run all development tasks through Turbo.
 - `bun run dev:desktop`: run the desktop app development task.
+- `bun run dev:www`: run the public website at `http://localhost:3000`.
 - `bun run electron:dev`: run the Electron development workflow directly.
 - `bun run --cwd apps/desktop prepare:higgsfield-cli`: ensure the pinned Higgsfield native binary exists locally.
 - `bun run test`: run workspace tests through Turbo.
@@ -22,11 +25,17 @@ Use Bun commands; do not add npm lockfiles.
 - `bun run lint`: run the workspace lint task.
 - `bun run fmt:check`: check formatting.
 - `bun run build`: build all workspace packages.
+- `bun run build:desktop`: build only the desktop app.
+- `bun run build:www`: build only the public website.
 - `bun run electron:dist`: create packaged desktop artifacts.
 
 CI and release automation are documented in [CI/CD](./ci.md).
 
 Authentication should normally happen inside Assetwell through the Sign in action.
+
+Set `VITE_SITE_URL` for production website builds so canonical and Open Graph URLs are absolute. It is listed in Turbo `globalEnv` because it changes build output.
+
+Website download platform availability and GitHub release asset selection live in `@assetwell/product/downloads`; keep `/download` and `/api/download` on that registry.
 
 ## Completion Checks
 

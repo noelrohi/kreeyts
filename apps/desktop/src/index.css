@@ -1,20 +1,27 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@import "@fontsource-variable/fraunces";
-@import "@fontsource-variable/hanken-grotesk";
+@import "@fontsource-variable/rethink-sans";
 @import "@fontsource-variable/jetbrains-mono";
 
 @source "../../../packages/ui/src/**/*.{ts,tsx}";
 
 @custom-variant dark (&:is(.dark *));
 
+/* Grifter — heavy display face for headings (free font by Hanson Method; shared in packages/product/assets). */
+@font-face {
+  font-family: "Grifter";
+  src: url("../../../packages/product/assets/fonts/grifter-bold.woff")
+    format("woff");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
   --font-sans:
-    "Hanken Grotesk Variable", ui-sans-serif, system-ui, -apple-system,
-    sans-serif;
-  --font-serif:
-    "Fraunces Variable", ui-serif, Georgia, "Times New Roman", serif;
+    "Rethink Sans Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Grifter", "Rethink Sans Variable", ui-sans-serif, sans-serif;
   --font-mono:
     "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
 
@@ -165,15 +172,11 @@
     min-height: 100vh;
   }
 
-  /* Fraunces breathes better with optical sizing on display text */
+  /* Grifter — heavy display face for headings and display text */
   .font-display {
-    font-family: var(--font-serif);
-    font-optical-sizing: auto;
-    font-variation-settings:
-      "SOFT" 0,
-      "WONK" 1,
-      "opsz" 144;
-    letter-spacing: -0.01em;
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
   }
 
   ::selection {
