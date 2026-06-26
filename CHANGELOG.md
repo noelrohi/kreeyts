@@ -7,6 +7,10 @@ and this project uses semantic version tags for desktop releases.
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-06-26
+
 ### Added
 
+- Initial Assetwell desktop release.
 - Desktop CI, release publishing, and packaged-app update foundations.
+- Manual Check for Updates menu item backed by the packaged-app updater.
