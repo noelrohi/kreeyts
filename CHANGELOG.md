@@ -7,6 +7,12 @@ and this project uses semantic version tags for desktop releases.
 
 ## [Unreleased]
 
+## [0.0.5] - 2026-06-26
+
+### Changed
+
+- Published a patch release with the refreshed desktop shell and shared placement registry.
+
 ## [0.0.4] - 2026-06-26
 
 ### Changed
