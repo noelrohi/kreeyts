@@ -7,6 +7,12 @@ and this project uses semantic version tags for desktop releases.
 
 ## [Unreleased]
 
+## [0.0.8] - 2026-06-30
+
+### Fixed
+
+- Fixed Windows and Linux release packaging so the latest GitHub Release can publish platform installers.
+
 ## [0.0.7] - 2026-06-30
 
 ### Added

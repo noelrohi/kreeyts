@@ -32,9 +32,9 @@ Release flow for humans or agents:
 The workflow verifies that `apps/desktop/package.json` matches the tag, creates or updates the GitHub Release, then runs `electron-builder` on a platform matrix:
 
 ```bash
-bun run --cwd apps/desktop dist -- --mac dmg zip --arm64 --publish always -c.publish.releaseType=release
-bun run --cwd apps/desktop dist -- --win nsis --x64 --publish always -c.publish.releaseType=release
-bun run --cwd apps/desktop dist -- --linux AppImage --x64 --publish always -c.publish.releaseType=release
+bun run --cwd apps/desktop dist -- --mac dmg zip --arm64 --publish always
+bun run --cwd apps/desktop dist -- --win nsis --x64 --publish always
+bun run --cwd apps/desktop dist -- --linux AppImage --x64 --publish always
 ```
 
 Manual workflow runs accept a specific release tag or `latest` to republish assets to the current latest GitHub Release. After all platform jobs finish, the workflow verifies that the latest release contains a macOS `.dmg`, a Windows `.exe`, and a Linux `.AppImage`.

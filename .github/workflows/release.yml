@@ -157,7 +157,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           EP_GH_IGNORE_TIME: true
-        run: bun run --cwd apps/desktop dist -- ${{ matrix.builder_args }} --publish always -c.publish.releaseType=release
+        run: bun run --cwd apps/desktop dist -- ${{ matrix.builder_args }} --publish always
 
       - name: Build and publish unsigned Windows/Linux app
         if: matrix.platform != 'macos'
@@ -165,7 +165,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
           EP_GH_IGNORE_TIME: true
-        run: bun run --cwd apps/desktop dist -- ${{ matrix.builder_args }} --publish always -c.publish.releaseType=release
+        run: bun run --cwd apps/desktop dist -- ${{ matrix.builder_args }} --publish always
 
   verify-release-assets:
     name: Verify latest release assets

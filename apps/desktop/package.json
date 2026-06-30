@@ -1,7 +1,7 @@
 {
   "name": "@assetwell/desktop",
   "private": true,
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Assetwell desktop app.",
   "author": "Rohi <noelrohi59@gmail.com>",
   "type": "module",
@@ -22,6 +22,7 @@
   "build": {
     "appId": "com.rohi.assetwell",
     "productName": "Assetwell",
+    "executableName": "Assetwell",
     "copyright": "Copyright © 2026 Rohi",
     "directories": {
       "output": "release/electron"
@@ -61,6 +62,7 @@
     "linux": {
       "icon": "build/icon.png",
       "category": "Graphics",
+      "syncDesktopName": true,
       "target": [
         "AppImage"
       ]
@@ -69,7 +71,8 @@
       {
         "provider": "github",
         "owner": "noelrohi",
-        "repo": "assetwell"
+        "repo": "assetwell",
+        "releaseType": "release"
       }
     ]
   },
