@@ -65,7 +65,7 @@ export async function checkForUpdatesFromMenu() {
     return
   }
 
-  if (!app.isPackaged) {
+  if (!app.isPackaged || isDevRuntime()) {
     await showUpdateDialog(
       owner,
       "Updates are available in packaged builds",
@@ -99,7 +99,11 @@ export async function checkForUpdatesFromMenu() {
 }
 
 function canUseAutoUpdater() {
-  return app.isPackaged && !DISABLE_AUTO_UPDATES
+  return app.isPackaged && !isDevRuntime() && !DISABLE_AUTO_UPDATES
+}
+
+function isDevRuntime() {
+  return Boolean(process.env.VITE_DEV_SERVER_URL)
 }
 
 function configureAutoUpdater() {

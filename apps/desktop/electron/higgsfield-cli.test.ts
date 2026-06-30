@@ -136,6 +136,27 @@ describe("Higgsfield CLI commands", () => {
     for (const call of spawnCalls) await completeSpawn(call)
   })
 
+  test("returns empty model details for unavailable fallback models", async () => {
+    const details = cli.getHiggsfieldModelDetails({
+      model: "soul-v2",
+      mediaKind: "image",
+    })
+
+    expect(spawnCalls[0].args).toEqual(["--json", "model", "get", "soul-v2"])
+    await completeLastSpawn({
+      stderr: 'Error: No model with job_set_type "soul-v2".',
+      exitCode: 1,
+    })
+
+    await expect(details).resolves.toEqual({
+      id: "soul-v2",
+      label: "soul-v2",
+      mediaKind: "image",
+      params: [],
+      aspectRatios: [],
+    })
+  })
+
   test("validates renderer-provided generation inputs before spawning", () => {
     expect(() =>
       cli.startGenerateCommand(

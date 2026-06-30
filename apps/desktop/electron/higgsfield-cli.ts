@@ -206,6 +206,16 @@ export async function getHiggsfieldModelDetails(
     15_000,
   )
 
+  if (isMissingModelResult(result)) {
+    return {
+      id: model,
+      label: model,
+      mediaKind,
+      params: [],
+      aspectRatios: [],
+    }
+  }
+
   ensureCommandSucceeded(result, "Load model details")
   return parseModelDetails(result.stdout, model, mediaKind)
 }
@@ -888,6 +898,13 @@ function mediaFlagForKind(mediaKind: HiggsfieldMediaKind) {
   if (mediaKind === "video") return "--video"
   if (mediaKind === "audio") return "--audio"
   return "--image"
+}
+
+function isMissingModelResult(result: CollectedCommand) {
+  return (
+    result.exitCode !== 0 &&
+    /No model with job_set_type/i.test(`${result.stdout}\n${result.stderr}`)
+  )
 }
 
 function ensureCommandSucceeded(result: CollectedCommand, title: string) {
