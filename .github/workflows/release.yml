@@ -183,13 +183,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LATEST_TAG=$(gh release view --json tagName --jq .tagName)
+          LATEST_TAG=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
           if [ "$LATEST_TAG" != "$RELEASE_TAG" ]; then
             echo "Expected $RELEASE_TAG to be the latest GitHub Release, but latest is $LATEST_TAG." >&2
             exit 1
           fi
 
-          gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | tee release-assets.txt
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | tee release-assets.txt
 
           require_asset() {
             local pattern="$1"
