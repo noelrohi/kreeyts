@@ -1,9 +1,10 @@
 import * as React from "react"
 import {
   IconArrowRight,
-  IconBook,
+  IconCheck,
   IconClock,
   IconPhotoPlus,
+  IconSelector,
   IconX,
 } from "@tabler/icons-react"
 import { useQueryState } from "nuqs"
@@ -44,6 +45,7 @@ const recommendedVideoModels: ModelRecommendation[] = [
 const DEFAULT_VIDEO_DURATION_SECONDS = 8
 const MIN_VIDEO_DURATION_SECONDS = 1
 const MAX_VIDEO_DURATION_SECONDS = 60
+const DURATION_PRESETS = [3, 5, 8, 10, 15]
 
 function parseVideoDurationSeconds(value: string) {
   const duration = Number.parseInt(value, 10)
@@ -98,6 +100,7 @@ export function VideoComposer() {
     "sizes",
     videoPlacementSelectionParser,
   )
+  const [durationPickerOpen, setDurationPickerOpen] = React.useState(false)
 
   const canMake =
     Boolean(videoDraftSource) &&
@@ -121,47 +124,49 @@ export function VideoComposer() {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-sidebar-border/90 bg-sidebar/95 p-3 text-sidebar-foreground shadow-2xl shadow-black/10 backdrop-blur-xl transition-colors duration-200 focus-within:border-primary/50">
-      <div className="grid gap-3 md:grid-cols-[168px_1fr]">
-        <div className="relative aspect-square overflow-hidden rounded-xl border border-border/70 bg-muted/25">
-          {videoDraftSource ? (
-            <>
+    <div className="overflow-hidden rounded-3xl bg-secondary p-3 text-secondary-foreground shadow-2xl shadow-black/10 backdrop-blur-xl transition duration-200 focus-within:ring-1 focus-within:ring-ring/40">
+      <div className="flex min-w-0 flex-col">
+        <Textarea
+          value={prompt}
+          onChange={(event) => setPrompt(event.target.value)}
+          placeholder="Describe the motion — camera move, energy, timing…"
+          className="min-h-[88px] resize-none rounded-lg border-0 bg-transparent px-1 pt-1 text-[15px] leading-relaxed shadow-none placeholder:text-muted-foreground/55 focus-visible:ring-0 dark:bg-transparent"
+        />
+
+        {videoDraftSource && (
+          <div className="flex flex-wrap gap-2 px-1 pt-2">
+            <span className="flex items-center gap-1.5 rounded-full border border-border/70 bg-background/50 py-1 pr-2 pl-1 text-xs text-muted-foreground">
               <img
                 src={videoDraftSource.url}
-                alt="source"
-                className="size-full object-cover"
+                alt="source frame"
+                className="size-5 rounded-full object-cover"
               />
+              <span className="max-w-32 truncate">source frame</span>
               <button
                 onClick={() => setVideoDraftSource(null)}
-                className="absolute top-2 right-2 grid size-6 place-items-center rounded-full bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
+                className="text-muted-foreground/70 transition-colors hover:text-foreground"
                 aria-label="Remove source frame"
               >
                 <IconX className="size-3.5" />
               </button>
-              <span className="absolute bottom-2 left-2 rounded-full bg-background/70 px-2 py-0.5 font-mono text-[0.6rem] text-muted-foreground backdrop-blur">
-                source frame
-              </span>
-            </>
-          ) : (
+            </span>
+          </div>
+        )}
+
+        <div className="mt-1 flex flex-col gap-2 pt-2 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             <button
               onClick={() => void chooseVideoSource()}
-              className="flex size-full flex-col items-center justify-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Attach image"
+              className={cn(
+                "flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors hover:bg-accent",
+                videoDraftSource && "bg-ember/10 text-ember hover:bg-ember/15",
+              )}
             >
-              <IconPhotoPlus className="size-6" />
-              <span className="text-xs">Attach image</span>
+              <IconPhotoPlus className="size-3.5" />
+              Attach image
             </button>
-          )}
-        </div>
 
-        <div className="flex min-w-0 flex-col">
-          <Textarea
-            value={prompt}
-            onChange={(event) => setPrompt(event.target.value)}
-            placeholder="Describe the motion — camera move, energy, timing…"
-            className="min-h-[88px] flex-1 resize-none rounded-lg border-0 bg-transparent px-1 pt-1 text-[15px] leading-relaxed shadow-none placeholder:text-muted-foreground/55 focus-visible:ring-0 dark:bg-transparent"
-          />
-
-          <div className="mt-1 flex flex-wrap items-center gap-2 pt-2">
             <ModelPicker
               models={videoModels}
               value={model}
@@ -169,46 +174,140 @@ export function VideoComposer() {
               recommendations={recommendedVideoModels}
             />
 
-            <label
-              htmlFor={durationInputId}
-              className={cn(
-                "flex h-8 items-center gap-1.5 rounded-full border border-border/70 bg-background/45 px-2.5 text-xs font-medium transition-colors focus-within:ring-2",
-                durationSeconds === null
-                  ? "border-destructive/60 focus-within:ring-destructive/15"
-                  : "focus-within:border-primary/50 focus-within:ring-primary/15",
-              )}
-              title="Video duration"
+            <Popover
+              open={durationPickerOpen}
+              onOpenChange={setDurationPickerOpen}
             >
-              <IconClock className="size-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground">Duration</span>
-              <input
-                id={durationInputId}
-                value={durationInput}
-                onChange={(event) =>
-                  setDurationInput(
-                    event.currentTarget.value.replace(/\D/g, "").slice(0, 2),
-                  )
-                }
-                onBlur={() =>
-                  setDurationInput(
-                    `${clampedVideoDurationSeconds(durationInput)}`,
-                  )
-                }
-                inputMode="numeric"
-                pattern="[0-9]*"
-                aria-label="Video duration in seconds"
-                aria-invalid={durationSeconds === null}
-                className="w-7 bg-transparent text-right font-mono text-[0.7rem] tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
-              <span className="font-mono text-[0.65rem] text-muted-foreground">
-                sec
-              </span>
-            </label>
+              <PopoverTrigger
+                aria-label="Video duration"
+                className={cn(
+                  "flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors hover:bg-accent data-[state=open]:bg-accent",
+                  durationSeconds === null && "text-destructive",
+                )}
+              >
+                <IconClock className="size-3.5 text-muted-foreground" />
+                <span className="font-mono tabular-nums">
+                  {durationInput || "0"}s
+                </span>
+                <IconSelector className="size-3.5 shrink-0 text-muted-foreground" />
+              </PopoverTrigger>
+              <PopoverContent align="start" sideOffset={6} className="w-56 p-2">
+                <div className="px-2 pt-1 pb-2">
+                  <p className="text-xs font-medium text-foreground">
+                    Duration
+                  </p>
+                  <p className="mt-0.5 text-[0.68rem] leading-4 text-muted-foreground/75">
+                    {MIN_VIDEO_DURATION_SECONDS}–{MAX_VIDEO_DURATION_SECONDS}{" "}
+                    seconds per clip.
+                  </p>
+                </div>
+                <div className="mb-2 flex flex-wrap gap-1 px-1">
+                  {DURATION_PRESETS.map((preset) => {
+                    const selected = durationSeconds === preset
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          setDurationInput(`${preset}`)
+                          setDurationPickerOpen(false)
+                        }}
+                        className={cn(
+                          "h-7 rounded-full px-2.5 font-mono text-[0.7rem] tabular-nums transition-colors",
+                          selected
+                            ? "bg-ember/10 text-ember"
+                            : "text-muted-foreground hover:bg-accent",
+                        )}
+                      >
+                        {preset}s
+                      </button>
+                    )
+                  })}
+                </div>
+                <label
+                  htmlFor={durationInputId}
+                  className="flex items-center gap-2 rounded-lg border border-border/70 bg-background/45 px-2.5 py-1.5 transition-colors focus-within:border-primary/50"
+                >
+                  <span className="text-xs text-muted-foreground">Custom</span>
+                  <input
+                    id={durationInputId}
+                    value={durationInput}
+                    onChange={(event) =>
+                      setDurationInput(
+                        event.currentTarget.value
+                          .replace(/\D/g, "")
+                          .slice(0, 2),
+                      )
+                    }
+                    onBlur={() =>
+                      setDurationInput(
+                        `${clampedVideoDurationSeconds(durationInput)}`,
+                      )
+                    }
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    aria-label="Video duration in seconds"
+                    aria-invalid={durationSeconds === null}
+                    className="w-full bg-transparent text-right font-mono text-[0.7rem] tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                  <span className="font-mono text-[0.65rem] text-muted-foreground">
+                    sec
+                  </span>
+                </label>
+              </PopoverContent>
+            </Popover>
 
             <Popover>
-              <PopoverTrigger className="flex h-8 items-center gap-1.5 rounded-full border border-border/70 bg-background/45 px-3 text-xs font-medium transition-colors hover:bg-accent">
-                <IconBook className="size-3.5" />
+              <PopoverTrigger
+                aria-label="Choose sizes"
+                className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors hover:bg-accent data-[state=open]:bg-accent"
+              >
+                <span>
+                  {sizes.length
+                    ? `${sizes.length} size${sizes.length > 1 ? "s" : ""}`
+                    : "Sizes"}
+                </span>
+                <IconSelector className="size-3.5 shrink-0 text-muted-foreground" />
+              </PopoverTrigger>
+              <PopoverContent align="start" sideOffset={6} className="w-64 p-2">
+                <div className="px-2 pt-1 pb-2">
+                  <p className="text-xs font-medium text-foreground">Sizes</p>
+                  <p className="mt-0.5 text-[0.68rem] leading-4 text-muted-foreground/75">
+                    Render one clip per selected size.
+                  </p>
+                </div>
+                <div className="grid gap-1">
+                  {videoPlacements.map((size) => {
+                    const selected = sizes.includes(size)
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => toggleSize(size)}
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors",
+                          selected
+                            ? "bg-ember/10 text-foreground"
+                            : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                        )}
+                      >
+                        <span className="min-w-0 flex-1 font-mono text-xs leading-none">
+                          {size}
+                        </span>
+                        {selected && (
+                          <IconCheck className="size-3.5 shrink-0 text-ember" />
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors hover:bg-accent">
                 Templates
+                <IconSelector className="size-3.5 shrink-0 text-muted-foreground" />
               </PopoverTrigger>
               <PopoverContent align="start" className="w-72 p-1.5">
                 <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
@@ -241,52 +340,32 @@ export function VideoComposer() {
             </Popover>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {videoPlacements.map((size) => {
-              const selected = sizes.includes(size)
-              return (
-                <button
-                  key={size}
-                  onClick={() => toggleSize(size)}
-                  className={cn(
-                    "rounded-full border px-2.5 py-1 font-mono text-[0.65rem] transition-colors",
-                    selected
-                      ? "border-ember/50 bg-ember/10 text-ember"
-                      : "border-border/70 text-muted-foreground hover:bg-accent",
-                  )}
-                >
-                  {size}
-                </button>
+          <button
+            onClick={() => {
+              if (!canMake || durationSeconds === null) return
+              void makeVideos({
+                prompt,
+                model,
+                sizes,
+                source: videoDraftSource!,
+                durationSeconds,
+              })
+              toast(
+                `Queued ${sizes.length} ${durationSeconds}s video${sizes.length > 1 ? "s" : ""}`,
               )
-            })}
-
-            <button
-              onClick={() => {
-                if (!canMake || durationSeconds === null) return
-                void makeVideos({
-                  prompt,
-                  model,
-                  sizes,
-                  source: videoDraftSource!,
-                  durationSeconds,
-                })
-                toast(
-                  `Queued ${sizes.length} ${durationSeconds}s video${sizes.length > 1 ? "s" : ""}`,
-                )
-                setPrompt("")
-              }}
-              disabled={!canMake}
-              className={cn(
-                "group ml-auto flex h-9 items-center gap-2 rounded-full px-4 text-sm font-medium transition-all",
-                canMake
-                  ? "bg-ember text-ember-foreground ember-glow hover:brightness-105"
-                  : "cursor-not-allowed bg-muted text-muted-foreground",
-              )}
-            >
-              Animate
-              <IconArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-            </button>
-          </div>
+              setPrompt("")
+            }}
+            disabled={!canMake}
+            className={cn(
+              "group flex h-9 shrink-0 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-all sm:ml-auto",
+              canMake
+                ? "bg-ember text-ember-foreground ember-glow hover:brightness-105"
+                : "cursor-not-allowed bg-muted text-muted-foreground",
+            )}
+          >
+            Animate
+            <IconArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </button>
         </div>
       </div>
     </div>

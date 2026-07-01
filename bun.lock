@@ -11,14 +11,14 @@
     },
     "apps/desktop": {
       "name": "@assetwell/desktop",
-      "version": "0.0.5",
+      "version": "0.0.8",
       "dependencies": {
         "@assetwell/desktop-bridge": "workspace:*",
         "@assetwell/product": "workspace:*",
         "@assetwell/ui": "workspace:*",
         "@fontsource-variable/jetbrains-mono": "^5.2.8",
         "@fontsource-variable/rethink-sans": "^5.2.8",
-        "@higgsfield/cli": "0.2.3",
+        "@higgsfield/cli": "1.0.2",
         "@tabler/icons-react": "catalog:",
         "@tailwindcss/vite": "catalog:",
         "@tanstack/react-router": "catalog:",
@@ -272,7 +272,7 @@
 
     "@fontsource-variable/rethink-sans": ["@fontsource-variable/rethink-sans@5.2.8", "", {}, "sha512-al4seUEA9sN3D7//lASAPUWPtehLIkKHQRxskZwTUHd3hOpfyjJWmXLOXYQwYAS5h4OhZ2D9S/3N73MzTJ5ecg=="],
 
-    "@higgsfield/cli": ["@higgsfield/cli@0.2.3", "", { "os": [ "linux", "win32", "darwin", ], "cpu": [ "x64", "arm64", ], "bin": { "higgsfield": "bin/higgsfield.js", "higgs": "bin/higgs.js" } }, "sha512-3Yjgf42+i+bSTdJMjrLi4EFqAzRIoPXQZMoY4mQldrDbgOZYSYrSYRZQbQwbuwzeB7x4+IJeQYd/5dOBKs3FnA=="],
+    "@higgsfield/cli": ["@higgsfield/cli@1.0.2", "", { "os": [ "linux", "win32", "darwin", ], "cpu": [ "x64", "arm64", ], "bin": { "higgsfield": "bin/higgsfield.js", "higgs": "bin/higgs.js" } }, "sha512-VqPI7nk98W97qsdrkatAjkE/VtxxCcWJ1ejOMP2tLDxzwOiw4waPM74FyKwGiwX28oh/aPFRITHO8J3BzbLCTQ=="],
 
     "@iarna/toml": ["@iarna/toml@2.2.5", "", {}, "sha512-trnsAYxU3xnS1gPHPyU961coFyLkh4gAD/0zQ5mymY4yOZ+CYvsPqUbOFSw0aDM4y0tV7tiFxL/1XfXPNC6IPg=="],
 
