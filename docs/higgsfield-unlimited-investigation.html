@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assetwell · Higgsfield Unlimited Investigation</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0d10;
+        --panel: #141820;
+        --panel-2: #10141b;
+        --line: rgba(255, 255, 255, 0.1);
+        --text: #f4f6f8;
+        --muted: #9aa4b2;
+        --soft: #c8d0dc;
+        --accent: #d1fe17;
+        --warn: #ffbf69;
+        --bad: #ff6b6b;
+        --good: #8cf0c2;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(209, 254, 23, 0.12),
+            transparent 32rem
+          ),
+          linear-gradient(180deg, #11151c 0%, var(--bg) 40%);
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      main {
+        width: min(1040px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 56px 0 72px;
+      }
+
+      header {
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        color: var(--accent);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 20px rgba(209, 254, 23, 0.7);
+      }
+
+      h1 {
+        margin: 12px 0 10px;
+        font-size: clamp(2rem, 5vw, 4.5rem);
+        line-height: 0.95;
+        letter-spacing: -0.055em;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 1.2rem;
+        letter-spacing: -0.02em;
+      }
+
+      h3 {
+        margin: 18px 0 8px;
+        font-size: 1rem;
+      }
+
+      p {
+        margin: 0 0 14px;
+        color: var(--soft);
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      code,
+      pre {
+        font-family:
+          "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono",
+          monospace;
+      }
+
+      code {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 0.12rem 0.32rem;
+        color: #fff;
+      }
+
+      pre {
+        overflow-x: auto;
+        margin: 12px 0 0;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #07090d;
+        padding: 16px;
+        color: #dfe7ef;
+        font-size: 0.86rem;
+      }
+
+      .lede {
+        max-width: 800px;
+        color: var(--muted);
+        font-size: 1.1rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 16px;
+      }
+
+      .card {
+        grid-column: span 12;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.055),
+          rgba(255, 255, 255, 0.025)
+        );
+        padding: 22px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+      }
+
+      .card.tight {
+        padding: 18px;
+      }
+
+      .half {
+        grid-column: span 6;
+      }
+
+      .third {
+        grid-column: span 4;
+      }
+
+      .verdict {
+        border-color: rgba(209, 254, 23, 0.35);
+        background:
+          linear-gradient(
+            180deg,
+            rgba(209, 254, 23, 0.12),
+            rgba(209, 254, 23, 0.025)
+          ),
+          var(--panel);
+      }
+
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 10px;
+        color: var(--soft);
+        font-size: 0.8rem;
+        font-weight: 650;
+      }
+
+      .badge.good {
+        border-color: rgba(140, 240, 194, 0.35);
+        color: var(--good);
+      }
+
+      .badge.warn {
+        border-color: rgba(255, 191, 105, 0.35);
+        color: var(--warn);
+      }
+
+      .badge.bad {
+        border-color: rgba(255, 107, 107, 0.35);
+        color: var(--bad);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel-2);
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: #fff;
+        font-size: 0.78rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      td {
+        color: var(--soft);
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      ul,
+      ol {
+        margin: 0;
+        padding-left: 1.2rem;
+        color: var(--soft);
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      .callout {
+        border-left: 3px solid var(--warn);
+        border-radius: 14px;
+        background: rgba(255, 191, 105, 0.08);
+        padding: 14px 16px;
+        color: var(--soft);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      footer {
+        margin-top: 28px;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      @media (max-width: 760px) {
+        main {
+          width: min(100% - 20px, 1040px);
+          padding-top: 32px;
+        }
+
+        .half,
+        .third {
+          grid-column: span 12;
+        }
+
+        .card {
+          border-radius: 18px;
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="eyebrow">
+          <span class="dot"></span> Investigation note · 2026-07-01
+        </div>
+        <h1>Higgsfield “Unlimited Generate” in Assetwell</h1>
+        <p class="lede">
+          Summary of GitHub issue #3: whether Assetwell can expose Higgsfield's
+          web-only Unlimited mode for generation without spending credits.
+        </p>
+      </header>
+
+      <section class="grid">
+        <article class="card verdict">
+          <h2>Decision</h2>
+          <p>
+            Do <strong>not</strong> add an Assetwell Unlimited toggle while
+            Assetwell uses the official <code>@higgsfield/cli</code>. The
+            current CLI does not expose a supported unlimited, relaxed,
+            standard-queue, or subscription-bucket flag.
+          </p>
+          <p>
+            A private web-app mechanism appears to exist, but Higgsfield's
+            public documentation says Unlimited is available on
+            <code>higgsfield.ai</code> only and not through CLI, MCP, Canvas, or
+            Supercomputer. Treat private web routes as unsupported and fragile.
+          </p>
+          <div class="badge-row" aria-label="Decision badges">
+            <span class="badge bad">No CLI flag</span>
+            <span class="badge warn">Web-only entitlement</span>
+            <span class="badge warn">Private API not product-safe</span>
+            <span class="badge good">Track upstream</span>
+          </div>
+        </article>
+
+        <article class="card half">
+          <h2>What was verified</h2>
+          <ul>
+            <li>Vendored package: <code>@higgsfield/cli@1.0.2</code>.</li>
+            <li>
+              CLI rejects obvious params: <code>--unlimited</code>,
+              <code>--use_unlim</code>, <code>--queue standard</code>, and
+              <code>--use_free_gens</code>.
+            </li>
+            <li>
+              <code>hf model get nano_banana_2</code> exposes model params only,
+              not billing mode or queue selection.
+            </li>
+            <li>
+              <code>generate cost</code> still returns credit costs for
+              eligible-looking requests.
+            </li>
+          </ul>
+        </article>
+
+        <article class="card half">
+          <h2>What exists on the web app</h2>
+          <p>
+            The Higgsfield web bundle contains separate unlimited job-set
+            identifiers and UI copy for an “Unlimited mode” toggle. Examples
+            observed in public web assets include:
+          </p>
+          <ul>
+            <li><code>nano_banana_pro_unlimited</code></li>
+            <li><code>gpt_image_2_unlimited</code></li>
+            <li><code>kling_3_unlimited</code></li>
+            <li>
+              <code>seedance_unlimited</code> /
+              <code>seedance_2_unlimited</code>
+            </li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Surface comparison</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Surface</th>
+                <th>Unlimited support</th>
+                <th>Assetwell implication</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Higgsfield web app</td>
+                <td>Yes, for entitled models/plans via the web UI.</td>
+                <td>
+                  Works for humans in browser; not directly reusable by
+                  Assetwell's CLI wrapper.
+                </td>
+              </tr>
+              <tr>
+                <td>Official Higgsfield CLI</td>
+                <td>No public flag or model param in <code>1.0.2</code>.</td>
+                <td>Assetwell cannot safely pass an unlimited option today.</td>
+              </tr>
+              <tr>
+                <td>Official MCP / agent docs</td>
+                <td>Documented as credit-based.</td>
+                <td>Same limitation as CLI for product expectations.</td>
+              </tr>
+              <tr>
+                <td>Private web backend</td>
+                <td>
+                  Appears to include <code>use_unlim</code> and unlimited
+                  job-set routes.
+                </td>
+                <td>
+                  Do not ship against it without explicit Higgsfield support and
+                  auth guidance.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="card third">
+          <h2>CLI probes</h2>
+          <pre><code>hf generate cost nano_banana_2 --prompt test --unlimited true
+# Error: Unknown params: unlimited
+
+hf generate cost nano_banana_2 --prompt test --use_unlim true
+# Error: Unknown params: use_unlim
+
+hf generate cost nano_banana_2 --prompt test --queue standard
+# Error: Unknown params: queue</code></pre>
+        </article>
+
+        <article class="card third">
+          <h2>Cost probes</h2>
+          <pre><code>hf --json generate cost seedance_2_0 \
+  --prompt test --mode fast --resolution 720p
+# { "credits": 17.5 }
+
+hf --json generate cost nano_banana_2 \
+  --prompt test --resolution 2k
+# { "credits": 2 }</code></pre>
+        </article>
+
+        <article class="card third">
+          <h2>Public docs signal</h2>
+          <p>
+            Higgsfield's Seedance Unlimited post states Unlimited is available
+            only on
+            <code>higgsfield.ai</code>, and that MCP, CLI, Canvas, and
+            Supercomputer generations consume credits regardless of Unlimited
+            status.
+          </p>
+        </article>
+
+        <article class="card">
+          <h2>Recommended product behavior</h2>
+          <ol>
+            <li>
+              Keep issue #3 open as <strong>blocked upstream</strong> until
+              Higgsfield exposes a supported CLI/API flag or entitlement-aware
+              cost endpoint.
+            </li>
+            <li>
+              Do not expose a fake toggle in Assetwell. It would imply savings
+              that the CLI cannot guarantee.
+            </li>
+            <li>
+              If users ask, explain: “Assetwell uses Higgsfield's CLI.
+              Higgsfield currently keeps Unlimited mode on the web app only, so
+              Assetwell generations use credits.”
+            </li>
+            <li>
+              Revisit when upstream issues requesting
+              <code>--unlimited</code> or subscription-aware costs are resolved.
+            </li>
+          </ol>
+        </article>
+
+        <article class="card">
+          <h2>References</h2>
+          <ul>
+            <li>
+              Assetwell issue:
+              <a href="https://github.com/noelrohi/assetwell/issues/3"
+                >noelrohi/assetwell#3</a
+              >
+            </li>
+            <li>
+              Upstream CLI requests:
+              <a href="https://github.com/higgsfield-ai/cli/issues/16"
+                >higgsfield-ai/cli#16</a
+              >, <a href="https://github.com/higgsfield-ai/cli/issues/6">#6</a>,
+              <a href="https://github.com/higgsfield-ai/cli/issues/1">#1</a>
+            </li>
+            <li>
+              Higgsfield documentation:
+              <a href="https://higgsfield.ai/blog/seedance-unlimited"
+                >Seedance Unlimited blog</a
+              >, <a href="https://higgsfield.ai/cli">CLI page</a>,
+              <a href="https://higgsfield.ai/mcp">MCP page</a>
+            </li>
+          </ul>
+        </article>
+      </section>
+
+      <footer>
+        This document intentionally avoids step-by-step instructions for private
+        web endpoints or browser-session extraction. Those routes are outside
+        Assetwell's supported integration model.
+      </footer>
+    </main>
+  </body>
+</html>
