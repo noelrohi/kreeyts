@@ -3,6 +3,9 @@ import type {
   HiggsfieldCommandResult,
   HiggsfieldGeneratedArtifact,
   HiggsfieldMediaKind,
+  HiggsfieldUploadedAsset,
+  HiggsfieldUploadListResult,
+  HiggsfieldUploadMediaKind,
   HiggsfieldModel,
   HiggsfieldModelDetails,
   HiggsfieldModelParam,
@@ -47,6 +50,28 @@ interface RawWorkspace {
   credits?: unknown
   is_selected?: unknown
   user_role?: unknown
+}
+
+interface RawUpload {
+  id?: unknown
+  upload_id?: unknown
+  uploadId?: unknown
+  type?: unknown
+  media_kind?: unknown
+  mediaKind?: unknown
+  url?: unknown
+  created_at?: unknown
+  createdAt?: unknown
+  size?: unknown
+  size_bytes?: unknown
+  sizeBytes?: unknown
+}
+
+interface RawUploadList {
+  items?: unknown
+  uploads?: unknown
+  data?: unknown
+  cursor?: unknown
 }
 
 const URL_PATTERN = /https?:\/\/[^\s"'<>\\)]+/g
@@ -152,6 +177,46 @@ export function parseWorkspaceContext(
     workspaces,
     checkedAt,
   }
+}
+
+export function parseUploadList(
+  stdout: string,
+  fallbackMediaKind: HiggsfieldUploadMediaKind = "image",
+  checkedAt = new Date().toISOString(),
+): HiggsfieldUploadListResult {
+  const json = parseJson<unknown>(stdout)
+  if (!json) {
+    throw new Error("Could not read Higgsfield uploads.")
+  }
+
+  const items = rawUploadListItems(json).flatMap((item) =>
+    normalizeUpload(item, fallbackMediaKind),
+  )
+  const cursor =
+    json && !Array.isArray(json) && typeof json === "object"
+      ? stringOrNull((json as RawUploadList).cursor)
+      : null
+
+  return {
+    items,
+    cursor,
+    checkedAt,
+  }
+}
+
+export function parseUpload(
+  stdout: string,
+  fallbackMediaKind: HiggsfieldUploadMediaKind = "image",
+): HiggsfieldUploadedAsset {
+  const json = parseJson<unknown>(stdout)
+  const item = json ? rawUploadItem(json) : null
+  const asset = item ? normalizeUpload(item, fallbackMediaKind)[0] : null
+
+  if (!asset) {
+    throw new Error("Could not read the uploaded Higgsfield asset.")
+  }
+
+  return asset
 }
 
 export function parseGenerationResult(
@@ -295,6 +360,86 @@ function normalizeWorkspace(
   ]
 }
 
+function rawUploadListItems(json: unknown): unknown[] {
+  if (Array.isArray(json)) return json
+  if (!json || typeof json !== "object") return []
+
+  const record = json as RawUploadList
+  if (Array.isArray(record.items)) return record.items
+  if (Array.isArray(record.uploads)) return record.uploads
+  if (Array.isArray(record.data)) return record.data
+  return []
+}
+
+function rawUploadItem(json: unknown): unknown | null {
+  const listed = rawUploadListItems(json)[0]
+  if (listed) return listed
+  if (!json || typeof json !== "object") return null
+
+  const record = json as {
+    item?: unknown
+    upload?: unknown
+    asset?: unknown
+    data?: unknown
+  }
+  for (const value of [record.item, record.upload, record.asset, record.data]) {
+    if (looksLikeUpload(value)) return value
+  }
+
+  return looksLikeUpload(json) ? json : null
+}
+
+function looksLikeUpload(value: unknown) {
+  if (!value || typeof value !== "object") return false
+  const upload = value as RawUpload
+  return Boolean(
+    stringOrNull(upload.id) ??
+    stringOrNull(upload.upload_id) ??
+    stringOrNull(upload.uploadId),
+  )
+}
+
+function normalizeUpload(
+  value: unknown,
+  fallbackMediaKind: HiggsfieldUploadMediaKind,
+): HiggsfieldUploadedAsset[] {
+  if (!value || typeof value !== "object") return []
+
+  const upload = value as RawUpload
+  const uploadId =
+    stringOrNull(upload.id) ??
+    stringOrNull(upload.upload_id) ??
+    stringOrNull(upload.uploadId)
+  const url = stringOrNull(upload.url)
+  if (!uploadId || !url) return []
+
+  const createdAt =
+    stringOrNull(upload.created_at) ?? stringOrNull(upload.createdAt)
+  const sizeBytes =
+    numberOrNull(upload.size_bytes) ??
+    numberOrNull(upload.sizeBytes) ??
+    numberOrNull(upload.size)
+
+  return [
+    {
+      id: uploadId,
+      uploadId,
+      name: uploadDisplayName(uploadId),
+      url,
+      mediaKind: normalizeUploadMediaKind(
+        upload.type ?? upload.media_kind ?? upload.mediaKind,
+        fallbackMediaKind,
+      ),
+      createdAt,
+      sizeBytes,
+    },
+  ]
+}
+
+function uploadDisplayName(uploadId: string) {
+  return `Upload ${uploadId.slice(0, 8)}`
+}
+
 function artifactsFromJson(
   stdout: string,
   defaultMediaKind: HiggsfieldMediaKind,
@@ -409,6 +554,14 @@ function normalizeMediaKind(
   }
 
   return fallback
+}
+
+function normalizeUploadMediaKind(
+  value: unknown,
+  fallback: HiggsfieldUploadMediaKind,
+): HiggsfieldUploadMediaKind {
+  const mediaKind = normalizeMediaKind(value, fallback)
+  return mediaKind === "text" ? fallback : mediaKind
 }
 
 function inferMediaKind(

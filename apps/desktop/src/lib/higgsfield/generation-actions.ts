@@ -34,7 +34,16 @@ import type { JobStatus } from "./types"
 
 export type CreativeReferenceAssetSnapshot = Pick<
   ReferenceAsset,
-  "id" | "name" | "url" | "filePath" | "sizeBytes" | "modifiedAt"
+  | "id"
+  | "name"
+  | "url"
+  | "filePath"
+  | "uploadId"
+  | "mediaKind"
+  | "createdAt"
+  | "source"
+  | "sizeBytes"
+  | "modifiedAt"
 >
 
 export function snapshotCreativeReferences(
@@ -44,13 +53,17 @@ export function snapshotCreativeReferences(
   return referenceIds
     .map((refId) => library.find((reference) => reference.id === refId))
     .flatMap((reference) => {
-      if (!reference?.filePath) return []
+      if (!reference?.filePath && !reference?.uploadId) return []
       return [
         {
           id: reference.id,
           name: reference.name,
           url: reference.url,
           filePath: reference.filePath,
+          uploadId: reference.uploadId,
+          mediaKind: reference.mediaKind,
+          createdAt: reference.createdAt,
+          source: reference.source,
           sizeBytes: reference.sizeBytes,
           modifiedAt: reference.modifiedAt,
         },
@@ -190,9 +203,11 @@ export function useHiggsfieldGenerationActions({
                 model: request.model,
                 prompt: request.prompt,
                 mediaKind: "image",
-                assetPaths: references.flatMap((reference) =>
-                  reference.filePath ? [reference.filePath] : [],
-                ),
+                assetPaths: references.flatMap((reference) => {
+                  const mediaReference =
+                    reference.uploadId ?? reference.filePath
+                  return mediaReference ? [mediaReference] : []
+                }),
                 assetMediaKind: references.length ? "image" : undefined,
                 aspectRatio: nearestHiggsfieldRatio(
                   request.ratioW,

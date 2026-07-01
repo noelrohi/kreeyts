@@ -29,6 +29,13 @@ export {
 } from "./local-assets"
 export { getAssetwellOutputRootSync } from "./settings-store"
 export {
+  assignUploadsToBrand,
+  createBrand,
+  loadBrandState,
+  setActiveBrand,
+  updateBrand,
+} from "./brand-store"
+export {
   createUploadsWorkspace as createUploadWorkspace,
   deleteUploadsReference as deleteReferenceAsset,
   deleteUploadsWorkspace as deleteUploadWorkspace,

@@ -1,4 +1,6 @@
 import type {
+  AssetwellBrand,
+  AssetwellBrandView,
   DesktopBridge,
   HiggsfieldAccountStatus,
   HiggsfieldCliStatus,
@@ -54,12 +56,19 @@ export interface VideoResult extends SeedVideoResult {
 
 export interface ReferenceAsset extends SeedReferenceAsset {
   filePath?: string
+  uploadId?: string
+  mediaKind?: Exclude<HiggsfieldMediaKind, "text">
+  createdAt?: string | null
+  source?: "higgsfield" | "local"
   sizeBytes?: number | null
   modifiedAt?: string | null
+  brandId?: string | null
 }
 
 export type PromptPreset = AssetwellPromptPreset
 export type UploadWorkspace = AssetwellUploadWorkspace
+export type BrandView = AssetwellBrandView
+export type Brand = AssetwellBrand
 
 export interface ModelOption {
   id: string
@@ -100,15 +109,34 @@ export interface MakeVideosRequest {
   durationSeconds: number
 }
 
+export interface BrandsDomain {
+  brands: Brand[]
+  activeBrand: Brand | null
+  activeBrandId: string | null
+  view: BrandView
+  activeLabel: string
+  setActiveBrand: (view: BrandView, id?: string | null) => Promise<boolean>
+  createBrand: (name: string) => Promise<boolean>
+  updateBrand: (id: string, name: string) => Promise<boolean>
+  assignUploads: (
+    uploadIds: string[],
+    brandId: string | null,
+  ) => Promise<boolean>
+}
+
 export interface UploadsDomain {
   workspaces: UploadWorkspace[]
   activeWorkspace: UploadWorkspace
   activeWorkspaceId: string
   references: ReferenceAsset[]
   refresh: () => Promise<void>
+  loadMore: () => Promise<void>
   reveal: () => Promise<void>
   importFiles: () => Promise<void>
-  deleteReference: (id: string) => Promise<void>
+  hasMore: boolean
+  loadingMore: boolean
+  canRevealReferences: boolean
+  isRemote: boolean
   switchWorkspace: (id: string) => Promise<boolean>
   createWorkspace: (name: string) => Promise<boolean>
   updateWorkspace: (id: string, name: string) => Promise<boolean>
@@ -124,6 +152,7 @@ export interface HiggsfieldAppValue {
   creatives: Creative[]
   videos: VideoResult[]
   uploads: UploadsDomain
+  brands: BrandsDomain
   imagePrompts: PromptPreset[]
   videoPrompts: PromptPreset[]
   settings: AssetwellSettings | null

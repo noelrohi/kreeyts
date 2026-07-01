@@ -49,6 +49,7 @@ export interface HiggsfieldCliStatus {
 }
 
 export type HiggsfieldMediaKind = "image" | "video" | "audio" | "text"
+export type HiggsfieldUploadMediaKind = Exclude<HiggsfieldMediaKind, "text">
 
 export type HiggsfieldProductAction =
   | "sign-in"
@@ -69,8 +70,69 @@ export interface HiggsfieldCommandRun {
 export interface HiggsfieldAssetSelection {
   filePath: string
   fileName: string
-  mediaKind: Exclude<HiggsfieldMediaKind, "text">
+  mediaKind: HiggsfieldUploadMediaKind
   sizeBytes: number | null
+}
+
+export interface HiggsfieldUploadedAsset {
+  id: string
+  uploadId: string
+  name: string
+  url: string
+  mediaKind: HiggsfieldUploadMediaKind
+  createdAt: string | null
+  sizeBytes?: number | null
+}
+
+export interface HiggsfieldUploadListRequest {
+  mediaKind?: HiggsfieldUploadMediaKind
+  size?: number
+  cursor?: string
+}
+
+export interface HiggsfieldUploadListResult {
+  items: HiggsfieldUploadedAsset[]
+  cursor: string | null
+  checkedAt: string
+}
+
+export type AssetwellBrandView = "all" | "unsorted" | "brand"
+
+export interface AssetwellBrand {
+  id: string
+  name: string
+  isDefault?: boolean
+}
+
+export interface AssetwellBrandAssignment {
+  uploadId: string
+  brandId: string | null
+}
+
+export interface AssetwellBrandState {
+  brands: AssetwellBrand[]
+  activeBrandId: string | null
+  activeBrandView: AssetwellBrandView
+  assignments: AssetwellBrandAssignment[]
+}
+
+export interface AssetwellSetActiveBrandRequest {
+  view: AssetwellBrandView
+  id?: string | null
+}
+
+export interface AssetwellCreateBrandRequest {
+  name: string
+}
+
+export interface AssetwellUpdateBrandRequest {
+  id: string
+  name: string
+}
+
+export interface AssetwellAssignUploadsToBrandRequest {
+  uploadIds: string[]
+  brandId: string | null
 }
 
 export interface HiggsfieldAccountStatus {
@@ -93,6 +155,10 @@ export interface HiggsfieldWorkspaceContext {
   selected: HiggsfieldWorkspaceSummary | null
   workspaces: HiggsfieldWorkspaceSummary[]
   checkedAt: string
+}
+
+export interface HiggsfieldSetWorkspaceRequest {
+  id: string
 }
 
 export interface HiggsfieldModel {
@@ -246,8 +312,13 @@ export interface AssetwellPersistedReferenceAsset {
   name: string
   url: string
   filePath?: string
+  uploadId?: string
+  mediaKind?: HiggsfieldUploadMediaKind
+  createdAt?: string | null
+  source?: "higgsfield" | "local"
   sizeBytes?: number | null
   modifiedAt?: string | null
+  brandId?: string | null
 }
 
 export interface AssetwellReferenceAsset extends AssetwellPersistedReferenceAsset {
@@ -257,9 +328,9 @@ export interface AssetwellReferenceAsset extends AssetwellPersistedReferenceAsse
 }
 
 export interface AssetwellUploadWorkspace {
-  /** Sanitized folder key under the local Uploads directory. */
+  /** Workspace scope id; currently a Higgsfield workspace id in the renderer. */
   id: string
-  /** User-facing label; may differ from the folder key. */
+  /** User-facing label; falls back to the id when Higgsfield has no name. */
   name: string
   isDefault: boolean
 }
@@ -276,6 +347,8 @@ export interface AssetwellUploadsSnapshot {
 
 export interface AssetwellSetActiveUploadWorkspaceRequest {
   id: string
+  /** Optional display name used for the temporary local compatibility folder. */
+  name?: string
 }
 
 export interface AssetwellCreateUploadWorkspaceRequest {
@@ -373,13 +446,25 @@ export interface DesktopBridge {
     signOut(): Promise<HiggsfieldCommandRun>
     checkCredits(): Promise<HiggsfieldAccountStatus>
     checkWorkspace(): Promise<HiggsfieldWorkspaceContext>
+    setWorkspace(
+      request: HiggsfieldSetWorkspaceRequest,
+    ): Promise<HiggsfieldWorkspaceContext>
     listModels(request?: HiggsfieldModelListRequest): Promise<HiggsfieldModel[]>
     getModelDetails(
       request: HiggsfieldModelDetailsRequest,
     ): Promise<HiggsfieldModelDetails>
+    listUploads(
+      request?: HiggsfieldUploadListRequest,
+    ): Promise<HiggsfieldUploadListResult>
     chooseAsset(
-      mediaKind?: Exclude<HiggsfieldMediaKind, "text">,
+      mediaKind?: HiggsfieldUploadMediaKind,
     ): Promise<HiggsfieldAssetSelection | null>
+    chooseAssets(
+      mediaKind?: HiggsfieldUploadMediaKind,
+    ): Promise<HiggsfieldAssetSelection[]>
+    createUpload(
+      request: HiggsfieldUploadAssetRequest,
+    ): Promise<HiggsfieldUploadedAsset>
     uploadAsset(
       request: HiggsfieldUploadAssetRequest,
     ): Promise<HiggsfieldCommandRun>
@@ -396,6 +481,19 @@ export interface DesktopBridge {
     getSettings(): Promise<AssetwellSettings>
     chooseOutputRoot(): Promise<AssetwellChooseOutputRootResult | null>
     revealOutputRoot(): Promise<boolean>
+    loadBrandState(): Promise<AssetwellBrandState>
+    setActiveBrand(
+      request: AssetwellSetActiveBrandRequest,
+    ): Promise<AssetwellBrandState>
+    createBrand(
+      request: AssetwellCreateBrandRequest,
+    ): Promise<AssetwellBrandState>
+    updateBrand(
+      request: AssetwellUpdateBrandRequest,
+    ): Promise<AssetwellBrandState>
+    assignUploadsToBrand(
+      request: AssetwellAssignUploadsToBrandRequest,
+    ): Promise<AssetwellBrandState>
     loadUploadsSnapshot(): Promise<AssetwellUploadsSnapshot>
     setActiveUploadWorkspace(
       request: AssetwellSetActiveUploadWorkspaceRequest,
@@ -411,9 +509,6 @@ export interface DesktopBridge {
     ): Promise<AssetwellUploadsSnapshot>
     importReferenceAssets(): Promise<AssetwellUploadsSnapshot>
     revealReferenceAssets(): Promise<boolean>
-    deleteReferenceAsset(
-      request: AssetwellDeleteReferenceAssetRequest,
-    ): Promise<AssetwellUploadsSnapshot>
     exportCreativeZip(
       request: AssetwellExportCreativeZipRequest,
     ): Promise<AssetwellExportCreativeZipResult | null>

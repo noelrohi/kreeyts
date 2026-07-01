@@ -1,12 +1,11 @@
 import * as React from "react"
-import type { AssetwellUploadWorkspace } from "@assetwell/desktop-bridge"
+import type { Brand } from "@/lib/higgsfield/types"
 import {
   IconCheck,
   IconChevronDown,
   IconFolders,
   IconPencil,
   IconPlus,
-  IconTrash,
 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
@@ -43,33 +42,19 @@ import {
 import { useHiggsfieldApp } from "@/lib/higgsfield"
 import { cn } from "@/lib/utils"
 
-type WorkspaceEditorState =
-  | { mode: "create"; workspace?: never }
-  | { mode: "edit"; workspace: AssetwellUploadWorkspace }
+type BrandEditorState =
+  | { mode: "create"; brand?: never }
+  | { mode: "edit"; brand: Brand }
 
-export function WorkspaceSwitcher() {
+export function BrandSwitcher() {
   const { isMobile } = useSidebar()
-  const { uploads } = useHiggsfieldApp()
-  const [editor, setEditor] = React.useState<WorkspaceEditorState | null>(null)
-  const [deleteCandidate, setDeleteCandidate] =
-    React.useState<AssetwellUploadWorkspace | null>(null)
-  const activeWorkspace = uploads.activeWorkspace
-  const activeWorkspaceName = activeWorkspace.name
-  const canDeleteActiveWorkspace = !activeWorkspace.isDefault
+  const { brands } = useHiggsfieldApp()
+  const [editor, setEditor] = React.useState<BrandEditorState | null>(null)
 
-  async function submitWorkspaceName(name: string) {
+  async function submitBrandName(name: string) {
     if (!editor) return false
-
-    if (editor.mode === "create") {
-      return uploads.createWorkspace(name)
-    }
-
-    return uploads.updateWorkspace(editor.workspace.id, name)
-  }
-
-  async function deleteWorkspace() {
-    if (!deleteCandidate) return false
-    return uploads.deleteWorkspace(deleteCandidate.id)
+    if (editor.mode === "create") return brands.createBrand(name)
+    return brands.updateBrand(editor.brand.id, name)
   }
 
   return (
@@ -80,7 +65,7 @@ export function WorkspaceSwitcher() {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                tooltip={activeWorkspaceName}
+                tooltip={brands.activeLabel}
                 className="no-drag h-12 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-border/70 bg-card/60 text-muted-foreground">
@@ -88,10 +73,10 @@ export function WorkspaceSwitcher() {
                 </span>
                 <div className="grid flex-1 text-left leading-tight">
                   <span className="text-[11px] font-medium text-muted-foreground">
-                    Workspace
+                    Brand
                   </span>
                   <span className="truncate text-sm font-medium">
-                    {activeWorkspaceName}
+                    {brands.activeLabel}
                   </span>
                 </div>
                 <IconChevronDown className="size-4 text-muted-foreground" />
@@ -104,92 +89,93 @@ export function WorkspaceSwitcher() {
               sideOffset={4}
             >
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                Uploads workspace
+                Brand scope
               </DropdownMenuLabel>
-              {uploads.workspaces.map((workspace) => {
-                const isActive = workspace.id === uploads.activeWorkspace.id
-                return (
-                  <DropdownMenuItem
-                    key={workspace.id}
-                    onClick={() => {
-                      if (!isActive) void uploads.switchWorkspace(workspace.id)
-                    }}
-                    aria-current={isActive ? "true" : undefined}
-                    className="gap-2"
-                  >
-                    <IconCheck
-                      className={cn("size-4", !isActive && "opacity-0")}
-                    />
-                    <span className="min-w-0 flex-1 truncate">
-                      {workspace.name}
-                    </span>
-                    {workspace.isDefault ? (
-                      <span className="rounded-full border border-border/70 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                        Default
-                      </span>
-                    ) : null}
-                  </DropdownMenuItem>
-                )
-              })}
+              <BrandMenuItem
+                label="All brands"
+                active={brands.view === "all"}
+                onSelect={() => void brands.setActiveBrand("all")}
+              />
+              <BrandMenuItem
+                label="Unsorted"
+                active={brands.view === "unsorted"}
+                onSelect={() => void brands.setActiveBrand("unsorted")}
+              />
+              {brands.brands.map((brand) => (
+                <BrandMenuItem
+                  key={brand.id}
+                  label={brand.name}
+                  active={
+                    brands.view === "brand" && brand.id === brands.activeBrandId
+                  }
+                  onSelect={() => void brands.setActiveBrand("brand", brand.id)}
+                />
+              ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setEditor({ mode: "create" })}
                 className="gap-2"
               >
                 <IconPlus />
-                New workspace…
+                New brand…
               </DropdownMenuItem>
               <DropdownMenuItem
+                disabled={!brands.activeBrand}
                 onClick={() => {
-                  setEditor({ mode: "edit", workspace: activeWorkspace })
+                  if (brands.activeBrand) {
+                    setEditor({ mode: "edit", brand: brands.activeBrand })
+                  }
                 }}
                 className="gap-2"
               >
                 <IconPencil />
                 Rename current…
               </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                disabled={!canDeleteActiveWorkspace}
-                onClick={() => {
-                  if (canDeleteActiveWorkspace) {
-                    setDeleteCandidate(activeWorkspace)
-                  }
-                }}
-                className="gap-2"
-              >
-                <IconTrash />
-                Delete current…
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
       </SidebarMenu>
 
-      <WorkspaceFormDialog
+      <BrandFormDialog
         state={editor}
         onOpenChange={(open) => {
           if (!open) setEditor(null)
         }}
-        onSubmit={submitWorkspaceName}
-      />
-      <DeleteWorkspaceDialog
-        workspace={deleteCandidate}
-        onOpenChange={(open) => {
-          if (!open) setDeleteCandidate(null)
-        }}
-        onConfirm={deleteWorkspace}
+        onSubmit={submitBrandName}
       />
     </>
   )
 }
 
-function WorkspaceFormDialog({
+export const WorkspaceSwitcher = BrandSwitcher
+
+function BrandMenuItem({
+  label,
+  active,
+  onSelect,
+}: {
+  label: string
+  active: boolean
+  onSelect: () => void
+}) {
+  return (
+    <DropdownMenuItem
+      onClick={onSelect}
+      aria-current={active ? "true" : undefined}
+      className="gap-2"
+    >
+      <IconCheck className={cn("size-4", !active && "opacity-0")} />
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+    </DropdownMenuItem>
+  )
+}
+
+function BrandFormDialog({
   state,
   onOpenChange,
   onSubmit,
 }: {
-  state: WorkspaceEditorState | null
+  state: BrandEditorState | null
   onOpenChange: (open: boolean) => void
   onSubmit: (name: string) => Promise<boolean>
 }) {
@@ -197,12 +183,11 @@ function WorkspaceFormDialog({
   const [error, setError] = React.useState<string | null>(null)
   const [saving, setSaving] = React.useState(false)
   const open = Boolean(state)
-  const mode = state?.mode ?? "create"
-  const isEditing = mode === "edit"
+  const isEditing = state?.mode === "edit"
 
   React.useEffect(() => {
     if (!state) return
-    setName(state.mode === "edit" ? state.workspace.name : "")
+    setName(state.mode === "edit" ? state.brand.name : "")
     setError(null)
     setSaving(false)
   }, [state])
@@ -220,9 +205,7 @@ function WorkspaceFormDialog({
     const saved = await onSubmit(trimmed)
     setSaving(false)
 
-    if (saved) {
-      onOpenChange(false)
-    }
+    if (saved) onOpenChange(false)
   }
 
   return (
@@ -231,20 +214,20 @@ function WorkspaceFormDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
-              {isEditing ? "Rename workspace" : "New Uploads workspace"}
+              {isEditing ? "Rename brand" : "New brand"}
             </DialogTitle>
             <DialogDescription>
               {isEditing
-                ? "Change the label shown in Assetwell. Files stay in the same local Uploads and outputs scope."
-                : "Create a separate local folder and output scope for a brand, campaign, or client."}
+                ? "Change the brand label shown in Assetwell. Higgsfield uploads stay where they are."
+                : "Create another local brand layer for uploads and generated outputs."}
             </DialogDescription>
           </DialogHeader>
 
           <FieldGroup className="py-5">
             <Field data-invalid={Boolean(error)}>
-              <FieldLabel htmlFor="workspace-name">Workspace name</FieldLabel>
+              <FieldLabel htmlFor="brand-name">Brand name</FieldLabel>
               <Input
-                id="workspace-name"
+                id="brand-name"
                 value={name}
                 onChange={(event) => {
                   setName(event.target.value)
@@ -252,11 +235,11 @@ function WorkspaceFormDialog({
                 }}
                 disabled={saving}
                 autoFocus
-                placeholder="e.g. Spring launch"
+                placeholder="e.g. Second brand"
               />
               <FieldDescription>
-                Keep uploads and generated outputs separated without exposing
-                Higgsfield workspace details.
+                Brands are local Assetwell organization metadata; Higgsfield
+                storage stays shared underneath.
               </FieldDescription>
               <FieldError>{error}</FieldError>
             </Field>
@@ -272,74 +255,10 @@ function WorkspaceFormDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving
-                ? "Saving…"
-                : isEditing
-                  ? "Rename workspace"
-                  : "Create workspace"}
+              {saving ? "Saving…" : isEditing ? "Rename brand" : "Create brand"}
             </Button>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function DeleteWorkspaceDialog({
-  workspace,
-  onOpenChange,
-  onConfirm,
-}: {
-  workspace: AssetwellUploadWorkspace | null
-  onOpenChange: (open: boolean) => void
-  onConfirm: () => Promise<boolean>
-}) {
-  const [deleting, setDeleting] = React.useState(false)
-  const open = Boolean(workspace)
-
-  React.useEffect(() => {
-    if (open) setDeleting(false)
-  }, [open])
-
-  async function handleDelete() {
-    setDeleting(true)
-    const deleted = await onConfirm()
-    setDeleting(false)
-
-    if (deleted) {
-      onOpenChange(false)
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Delete workspace?</DialogTitle>
-          <DialogDescription>
-            This removes “{workspace?.name ?? "this workspace"}” and deletes the
-            files in its local Uploads folder. Generated output files stay on
-            disk.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={deleting}
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={deleting}
-            onClick={() => void handleDelete()}
-          >
-            {deleting ? "Deleting…" : "Delete workspace"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

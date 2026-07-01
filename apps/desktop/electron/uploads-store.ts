@@ -65,12 +65,36 @@ export async function setActiveUploadsWorkspace(
   request: AssetwellSetActiveUploadWorkspaceRequest,
 ): Promise<AssetwellUploadsSnapshot> {
   const settings = await ensureUploadWorkspaceSettings()
-  const workspace = requireUploadWorkspace(
-    settings.uploadWorkspaces,
-    request.id,
-  )
+  const requestedWorkspaceId = normalizeUploadWorkspaceId(request.id)
 
-  const next = { ...settings, activeUploadWorkspaceId: workspace.id }
+  if (!requestedWorkspaceId) {
+    throw new Error("Unknown Uploads workspace.")
+  }
+
+  const existing = findUploadWorkspace(
+    settings.uploadWorkspaces,
+    requestedWorkspaceId,
+  )
+  const workspace = existing ?? {
+    id: requestedWorkspaceId,
+    name: normalizeUploadWorkspaceName(request.name) ?? requestedWorkspaceId,
+  }
+  const uploadWorkspaces = existing
+    ? settings.uploadWorkspaces.map((current) =>
+        current.id === existing.id && request.name
+          ? {
+              ...current,
+              name: normalizeUploadWorkspaceName(request.name) ?? current.name,
+            }
+          : current,
+      )
+    : [...settings.uploadWorkspaces, workspace]
+
+  const next = {
+    ...settings,
+    activeUploadWorkspaceId: workspace.id,
+    uploadWorkspaces,
+  }
   await mkdir(uploadWorkspaceDirectory(next.outputRoot, workspace.id), {
     recursive: true,
   })

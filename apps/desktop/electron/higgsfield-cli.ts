@@ -24,7 +24,12 @@ import type {
   HiggsfieldModelListRequest,
   HiggsfieldOutputSize,
   HiggsfieldProductAction,
+  HiggsfieldSetWorkspaceRequest,
+  HiggsfieldUploadedAsset,
   HiggsfieldUploadAssetRequest,
+  HiggsfieldUploadListRequest,
+  HiggsfieldUploadListResult,
+  HiggsfieldUploadMediaKind,
   HiggsfieldWorkspaceContext,
   HiggsfieldWorkspaceStatus,
 } from "@assetwell/desktop-bridge"
@@ -35,6 +40,8 @@ import {
   parseGenerationResult,
   parseModelDetails,
   parseModelList,
+  parseUpload,
+  parseUploadList,
   parseWorkspaceContext,
 } from "./higgsfield-output"
 import { getAssetwellOutputRootSync } from "./local-store"
@@ -185,6 +192,21 @@ export async function getHiggsfieldWorkspaceContext(): Promise<HiggsfieldWorkspa
   return parseWorkspaceContext(result.stdout)
 }
 
+export async function setHiggsfieldWorkspace(
+  request: HiggsfieldSetWorkspaceRequest,
+): Promise<HiggsfieldWorkspaceContext> {
+  const workspaceId = normalizeWorkspaceId(request.id)
+  const executable = resolveHiggsfieldExecutable()
+  const result = await collectHiggsfieldOutput(
+    executable,
+    ["workspace", "set", workspaceId],
+    10_000,
+  )
+
+  ensureCommandSucceeded(result, "Switch workspace")
+  return getHiggsfieldWorkspaceContext()
+}
+
 export async function getHiggsfieldModels(
   request: HiggsfieldModelListRequest | undefined,
 ): Promise<HiggsfieldModel[]> {
@@ -214,6 +236,44 @@ export async function getHiggsfieldModelDetails(
 
   ensureCommandSucceeded(result, "Load model details")
   return parseModelDetails(result.stdout, model, mediaKind)
+}
+
+export async function getHiggsfieldUploads(
+  request: HiggsfieldUploadListRequest | undefined,
+): Promise<HiggsfieldUploadListResult> {
+  const mediaKind = normalizeUploadMediaKind(request?.mediaKind ?? "image")
+  const size = normalizeUploadListSize(request?.size ?? 100)
+  const cursor = normalizeOptionalCursor(request?.cursor)
+  const executable = resolveHiggsfieldExecutable()
+  const workspaceResult = await ensureHiggsfieldWorkspaceSelected(executable)
+  ensureWorkspaceReady(workspaceResult, "Load uploads")
+
+  const args = ["--json", "upload", "list", `--${mediaKind}`, "--size", size]
+  if (cursor) args.push("--cursor", cursor)
+
+  const result = await collectHiggsfieldOutput(executable, args, 20_000)
+
+  ensureCommandSucceeded(result, "Load uploads")
+  return parseUploadList(result.stdout, mediaKind)
+}
+
+export async function createHiggsfieldUpload(
+  request: HiggsfieldUploadAssetRequest,
+): Promise<HiggsfieldUploadedAsset> {
+  const filePath = normalizeFilePath(request.filePath)
+  const mediaKind = inferUploadMediaKind(filePath)
+  const executable = resolveHiggsfieldExecutable()
+  const workspaceResult = await ensureHiggsfieldWorkspaceSelected(executable)
+  ensureWorkspaceReady(workspaceResult, "Upload asset")
+
+  const result = await collectHiggsfieldOutput(
+    executable,
+    ["--json", "upload", "create", filePath],
+    120_000,
+  )
+
+  ensureCommandSucceeded(result, "Upload asset")
+  return parseUpload(result.stdout, mediaKind)
 }
 
 export function startSignInCommand(emit: CommandOutputEmitter) {
@@ -328,7 +388,7 @@ export function startGenerateCommand(
     if (!assetPath.trim()) continue
     args.push(
       mediaFlagForKind(request.assetMediaKind ?? mediaKind),
-      normalizeFilePath(assetPath),
+      normalizeMediaReference(assetPath),
     )
   }
 
@@ -929,6 +989,56 @@ function normalizePrompt(value: string) {
   return prompt
 }
 
+function normalizeWorkspaceId(value: unknown) {
+  if (typeof value !== "string") {
+    throw new Error("Choose a Higgsfield workspace before continuing.")
+  }
+
+  const workspaceId = value.trim()
+  if (!workspaceId) {
+    throw new Error("Choose a Higgsfield workspace before continuing.")
+  }
+
+  return workspaceId
+}
+
+function normalizeUploadMediaKind(value: unknown): HiggsfieldUploadMediaKind {
+  if (value === "image" || value === "video" || value === "audio") {
+    return value
+  }
+
+  return "image"
+}
+
+function normalizeUploadListSize(value: unknown) {
+  const size = typeof value === "number" ? value : Number(value)
+  if (!Number.isInteger(size) || size < 1 || size > 500) {
+    throw new Error("Choose between 1 and 500 uploads to load.")
+  }
+
+  return `${size}`
+}
+
+function normalizeOptionalCursor(value: unknown) {
+  if (value === undefined || value === null) return null
+  if (typeof value !== "string") return null
+
+  const cursor = value.trim()
+  return cursor || null
+}
+
+function inferUploadMediaKind(filePath: string): HiggsfieldUploadMediaKind {
+  const extension = path.extname(filePath).toLowerCase()
+  if ([".mp4", ".mov", ".webm", ".m4v"].includes(extension)) {
+    return "video"
+  }
+  if ([".mp3", ".wav", ".m4a", ".aac", ".flac"].includes(extension)) {
+    return "audio"
+  }
+
+  return "image"
+}
+
 function normalizeAspectRatio(value: string) {
   const aspectRatio = value.trim()
 
@@ -964,6 +1074,23 @@ function normalizeFilePath(value: string) {
   }
 
   return filePath
+}
+
+function normalizeMediaReference(value: string) {
+  const reference = value.trim()
+
+  if (!reference) {
+    throw new Error("Choose an asset before continuing.")
+  }
+
+  if (isHiggsfieldUploadId(reference)) return reference
+  return normalizeFilePath(reference)
+}
+
+function isHiggsfieldUploadId(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value,
+  )
 }
 
 function mediaFlagForKind(mediaKind: HiggsfieldMediaKind) {

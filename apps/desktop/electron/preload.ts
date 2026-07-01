@@ -21,12 +21,20 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke(IPC_CHANNELS.higgsfield.checkCredits),
     checkWorkspace: () =>
       ipcRenderer.invoke(IPC_CHANNELS.higgsfield.checkWorkspace),
+    setWorkspace: (request) =>
+      ipcRenderer.invoke(IPC_CHANNELS.higgsfield.setWorkspace, request),
     listModels: (request) =>
       ipcRenderer.invoke(IPC_CHANNELS.higgsfield.listModels, request),
     getModelDetails: (request) =>
       ipcRenderer.invoke(IPC_CHANNELS.higgsfield.getModelDetails, request),
+    listUploads: (request) =>
+      ipcRenderer.invoke(IPC_CHANNELS.higgsfield.listUploads, request),
     chooseAsset: (mediaKind) =>
       ipcRenderer.invoke(IPC_CHANNELS.higgsfield.chooseAsset, mediaKind),
+    chooseAssets: (mediaKind) =>
+      ipcRenderer.invoke(IPC_CHANNELS.higgsfield.chooseAssets, mediaKind),
+    createUpload: (request) =>
+      ipcRenderer.invoke(IPC_CHANNELS.higgsfield.createUpload, request),
     uploadAsset: (request) =>
       ipcRenderer.invoke(IPC_CHANNELS.higgsfield.uploadAsset, request),
     generate: (request) =>
@@ -62,6 +70,16 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke(IPC_CHANNELS.library.chooseOutputRoot),
     revealOutputRoot: () =>
       ipcRenderer.invoke(IPC_CHANNELS.library.revealOutputRoot),
+    loadBrandState: () =>
+      ipcRenderer.invoke(IPC_CHANNELS.library.loadBrandState),
+    setActiveBrand: (request) =>
+      ipcRenderer.invoke(IPC_CHANNELS.library.setActiveBrand, request),
+    createBrand: (request) =>
+      ipcRenderer.invoke(IPC_CHANNELS.library.createBrand, request),
+    updateBrand: (request) =>
+      ipcRenderer.invoke(IPC_CHANNELS.library.updateBrand, request),
+    assignUploadsToBrand: (request) =>
+      ipcRenderer.invoke(IPC_CHANNELS.library.assignUploadsToBrand, request),
     loadUploadsSnapshot: () =>
       ipcRenderer.invoke(IPC_CHANNELS.library.loadUploadsSnapshot),
     setActiveUploadWorkspace: (request) =>
@@ -79,8 +97,6 @@ const bridge: DesktopBridge = {
       ipcRenderer.invoke(IPC_CHANNELS.library.importReferenceAssets),
     revealReferenceAssets: () =>
       ipcRenderer.invoke(IPC_CHANNELS.library.revealReferenceAssets),
-    deleteReferenceAsset: (request) =>
-      ipcRenderer.invoke(IPC_CHANNELS.library.deleteReferenceAsset, request),
     exportCreativeZip: (request) =>
       ipcRenderer.invoke(IPC_CHANNELS.library.exportCreativeZip, request),
     exportVideo: (request) =>

@@ -14,20 +14,25 @@ import type {
   HiggsfieldAssetSelection,
   HiggsfieldCommandOutputEvent,
   HiggsfieldGenerateRequest,
-  HiggsfieldMediaKind,
   HiggsfieldModelDetailsRequest,
   HiggsfieldModelListRequest,
   HiggsfieldOpenOutputRequest,
+  HiggsfieldSetWorkspaceRequest,
   HiggsfieldUploadAssetRequest,
+  HiggsfieldUploadListRequest,
+  HiggsfieldUploadMediaKind,
 } from "@assetwell/desktop-bridge"
 
 import {
   cancelHiggsfieldCommand,
+  createHiggsfieldUpload,
   getHiggsfieldAccountStatus,
   getHiggsfieldCliStatus,
   getHiggsfieldModelDetails,
   getHiggsfieldModels,
+  getHiggsfieldUploads,
   getHiggsfieldWorkspaceContext,
+  setHiggsfieldWorkspace,
   startGenerateCommand,
   startSignInCommand,
   startSignOutCommand,
@@ -57,6 +62,13 @@ export function registerHiggsfieldIpc() {
   })
 
   ipcMain.handle(
+    IPC_CHANNELS.higgsfield.setWorkspace,
+    (_event, request: HiggsfieldSetWorkspaceRequest) => {
+      return setHiggsfieldWorkspace(request)
+    },
+  )
+
+  ipcMain.handle(
     IPC_CHANNELS.higgsfield.listModels,
     (_event, request?: HiggsfieldModelListRequest) => {
       return getHiggsfieldModels(request)
@@ -71,9 +83,30 @@ export function registerHiggsfieldIpc() {
   )
 
   ipcMain.handle(
+    IPC_CHANNELS.higgsfield.listUploads,
+    (_event, request?: HiggsfieldUploadListRequest) => {
+      return getHiggsfieldUploads(request)
+    },
+  )
+
+  ipcMain.handle(
     IPC_CHANNELS.higgsfield.chooseAsset,
-    (event, mediaKind?: Exclude<HiggsfieldMediaKind, "text">) => {
+    (event, mediaKind?: HiggsfieldUploadMediaKind) => {
       return chooseAsset(event, mediaKind)
+    },
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.higgsfield.chooseAssets,
+    (event, mediaKind?: HiggsfieldUploadMediaKind) => {
+      return chooseAssets(event, mediaKind)
+    },
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.higgsfield.createUpload,
+    (_event, request: HiggsfieldUploadAssetRequest) => {
+      return createHiggsfieldUpload(request)
     },
   )
 
@@ -108,29 +141,49 @@ export function registerHiggsfieldIpc() {
 
 async function chooseAsset(
   event: IpcMainInvokeEvent,
-  mediaKind: Exclude<HiggsfieldMediaKind, "text"> = "image",
+  mediaKind: HiggsfieldUploadMediaKind = "image",
 ): Promise<HiggsfieldAssetSelection | null> {
+  return (await chooseAssetFiles(event, mediaKind, false))[0] ?? null
+}
+
+async function chooseAssets(
+  event: IpcMainInvokeEvent,
+  mediaKind: HiggsfieldUploadMediaKind = "image",
+): Promise<HiggsfieldAssetSelection[]> {
+  return chooseAssetFiles(event, mediaKind, true)
+}
+
+async function chooseAssetFiles(
+  event: IpcMainInvokeEvent,
+  mediaKind: HiggsfieldUploadMediaKind,
+  multiSelections: boolean,
+): Promise<HiggsfieldAssetSelection[]> {
   const owner = BrowserWindow.fromWebContents(event.sender)
   const options: OpenDialogOptions = {
-    title: "Choose an asset for Higgsfield",
-    properties: ["openFile"],
+    title: multiSelections
+      ? "Choose assets for Higgsfield"
+      : "Choose an asset for Higgsfield",
+    properties: multiSelections
+      ? ["openFile", "multiSelections"]
+      : ["openFile"],
     filters: filtersForMediaKind(mediaKind),
   }
   const result = owner
     ? await dialog.showOpenDialog(owner, options)
     : await dialog.showOpenDialog(options)
 
-  if (result.canceled || !result.filePaths[0]) return null
+  if (result.canceled) return []
 
-  const filePath = result.filePaths[0]
-  const stat = statSync(filePath, { throwIfNoEntry: false })
+  return result.filePaths.map((filePath) => {
+    const stat = statSync(filePath, { throwIfNoEntry: false })
 
-  return {
-    filePath,
-    fileName: path.basename(filePath),
-    mediaKind,
-    sizeBytes: stat?.isFile() ? stat.size : null,
-  }
+    return {
+      filePath,
+      fileName: path.basename(filePath),
+      mediaKind,
+      sizeBytes: stat?.isFile() ? stat.size : null,
+    }
+  })
 }
 
 async function openOutput(request: HiggsfieldOpenOutputRequest) {
@@ -173,7 +226,7 @@ function streamToInvoker(event: IpcMainInvokeEvent) {
   }
 }
 
-function filtersForMediaKind(mediaKind: Exclude<HiggsfieldMediaKind, "text">) {
+function filtersForMediaKind(mediaKind: HiggsfieldUploadMediaKind) {
   if (mediaKind === "video") {
     return [{ name: "Video", extensions: ["mp4", "mov", "webm", "m4v"] }]
   }

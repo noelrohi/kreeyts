@@ -9,7 +9,7 @@ import {
 
 import { CreditsCard } from "@/components/blocks/layout/credits-card"
 import { NavUser } from "@/components/blocks/layout/nav-user"
-import { WorkspaceSwitcher } from "@/components/blocks/layout/workspace-switcher"
+import { BrandSwitcher } from "@/components/blocks/layout/workspace-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -61,7 +61,7 @@ export function AppSidebar({
       <SidebarContent className="scrollbar-none bg-transparent">
         <SidebarGroup className="pb-1">
           <SidebarGroupContent>
-            <WorkspaceSwitcher />
+            <BrandSwitcher />
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>

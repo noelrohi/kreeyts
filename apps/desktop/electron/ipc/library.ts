@@ -1,30 +1,37 @@
 import { BrowserWindow, ipcMain, type IpcMainInvokeEvent } from "electron"
 import type {
+  AssetwellAssignUploadsToBrandRequest,
+  AssetwellCreateBrandRequest,
   AssetwellCreateUploadWorkspaceRequest,
-  AssetwellDeleteReferenceAssetRequest,
   AssetwellDeleteUploadWorkspaceRequest,
   AssetwellExportCreativeZipRequest,
   AssetwellExportVideoRequest,
   AssetwellLibrarySnapshot,
+  AssetwellSetActiveBrandRequest,
   AssetwellSetActiveUploadWorkspaceRequest,
+  AssetwellUpdateBrandRequest,
   AssetwellUpdateUploadWorkspaceRequest,
 } from "@assetwell/desktop-bridge"
 
 import {
+  assignUploadsToBrand,
   chooseAssetwellOutputRoot,
+  createBrand,
   createUploadWorkspace,
-  deleteReferenceAsset,
   deleteUploadWorkspace,
   exportCreativeZip,
   exportVideo,
   getAssetwellSettings,
   importReferenceAssets,
+  loadBrandState,
   loadLibrarySnapshot,
   loadUploadsSnapshot,
   revealAssetwellOutputRoot,
   revealReferenceAssets,
   saveLibrarySnapshot,
+  setActiveBrand,
   setActiveUploadWorkspace,
+  updateBrand,
   updateUploadWorkspace,
 } from "../local-store"
 import { IPC_CHANNELS } from "../shared/channels"
@@ -52,6 +59,38 @@ export function registerLibraryIpc() {
   ipcMain.handle(IPC_CHANNELS.library.revealOutputRoot, () => {
     return revealAssetwellOutputRoot()
   })
+
+  ipcMain.handle(IPC_CHANNELS.library.loadBrandState, () => {
+    return loadBrandState()
+  })
+
+  ipcMain.handle(
+    IPC_CHANNELS.library.setActiveBrand,
+    (_event, request: AssetwellSetActiveBrandRequest) => {
+      return setActiveBrand(request)
+    },
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.library.createBrand,
+    (_event, request: AssetwellCreateBrandRequest) => {
+      return createBrand(request)
+    },
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.library.updateBrand,
+    (_event, request: AssetwellUpdateBrandRequest) => {
+      return updateBrand(request)
+    },
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.library.assignUploadsToBrand,
+    (_event, request: AssetwellAssignUploadsToBrandRequest) => {
+      return assignUploadsToBrand(request)
+    },
+  )
 
   ipcMain.handle(IPC_CHANNELS.library.loadUploadsSnapshot, () => {
     return loadUploadsSnapshot()
@@ -92,13 +131,6 @@ export function registerLibraryIpc() {
   ipcMain.handle(IPC_CHANNELS.library.revealReferenceAssets, () => {
     return revealReferenceAssets()
   })
-
-  ipcMain.handle(
-    IPC_CHANNELS.library.deleteReferenceAsset,
-    (_event, request: AssetwellDeleteReferenceAssetRequest) => {
-      return deleteReferenceAsset(request)
-    },
-  )
 
   ipcMain.handle(
     IPC_CHANNELS.library.exportCreativeZip,

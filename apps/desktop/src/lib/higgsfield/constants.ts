@@ -8,6 +8,7 @@ import type { PromptPreset, ReferenceAsset } from "./types"
 
 export const BASE_CREATIVE_TAKE_COUNT = 1
 export const BILLING_URL = "https://higgsfield.ai/billing"
+export const HIGGSFIELD_UPLOADS_PAGE_SIZE = 24
 
 export const seededReferences = seededReferenceLibrary as ReferenceAsset[]
 

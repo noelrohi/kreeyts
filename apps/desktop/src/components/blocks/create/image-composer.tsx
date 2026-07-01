@@ -43,6 +43,7 @@ export function ImageComposer() {
   const {
     imageModels,
     uploads,
+    brands,
     imagePrompts,
     savePromptPreset,
     getModelAspectRatios,
@@ -79,7 +80,7 @@ export function ImageComposer() {
     ratioOptions.length < baseRatios.length
       ? `${ratioOptions.length} size${ratioOptions.length === 1 ? "" : "s"} for ${selectedModel?.label ?? "this model"}`
       : "Common Higgsfield sizes"
-  const activeUploadWorkspaceName = uploads.activeWorkspace.name
+  const activeBrandName = brands.activeLabel
   const canMake = prompt.trim().length > 0 && model.length > 0
 
   React.useEffect(() => {
@@ -166,6 +167,8 @@ export function ImageComposer() {
                 <img
                   src={ref.url}
                   alt={ref.name}
+                  loading="lazy"
+                  decoding="async"
                   className="size-5 rounded-full object-cover"
                 />
                 <span className="max-w-32 truncate">{ref.name}</span>
@@ -270,7 +273,7 @@ export function ImageComposer() {
                     Uploads references
                   </p>
                   <p className="mt-0.5 text-[0.68rem] leading-4 text-muted-foreground/70">
-                    Files are read from {activeUploadWorkspaceName}.
+                    Shared uploads from {activeBrandName}.
                   </p>
                 </div>
                 <button
@@ -287,8 +290,8 @@ export function ImageComposer() {
                     No Uploads files yet
                   </p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    Add logos, product shots, or mood references once, then pick
-                    them here for any creative.
+                    Add logos, product shots, or mood references to Higgsfield,
+                    then pick them here for any creative.
                   </p>
                   <button
                     onClick={() => void uploads.importFiles()}
@@ -321,6 +324,8 @@ export function ImageComposer() {
                         <img
                           src={ref.url}
                           alt={ref.name}
+                          loading="lazy"
+                          decoding="async"
                           className="size-full object-cover"
                         />
                         <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-background/90 to-transparent px-1.5 pt-3 pb-1 text-left text-[0.6rem] text-foreground">

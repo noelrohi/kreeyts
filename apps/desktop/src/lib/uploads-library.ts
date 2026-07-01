@@ -9,12 +9,14 @@ import { seededReferences } from "./higgsfield/constants"
 import { normalizeReferenceUrl } from "./higgsfield/local-state"
 import { friendlyError } from "./higgsfield/text"
 import type {
+  BrandView,
   LibraryBridge,
   ReferenceAsset,
   UploadsDomain,
 } from "./higgsfield/types"
 
 export const DEFAULT_UPLOAD_WORKSPACE_ID = "Default"
+export const UNSORTED_BRAND_SCOPE_ID = "Unsorted"
 
 const defaultUploadWorkspace: AssetwellUploadWorkspace = {
   id: DEFAULT_UPLOAD_WORKSPACE_ID,
@@ -22,14 +24,36 @@ const defaultUploadWorkspace: AssetwellUploadWorkspace = {
   isDefault: true,
 }
 
-export function isInUploadWorkspace(
+export function itemBrandId(
   item: { uploadWorkspaceId?: string },
-  uploadWorkspaceId: string,
+  brandIds?: ReadonlySet<string>,
 ) {
-  return (
-    (item.uploadWorkspaceId || DEFAULT_UPLOAD_WORKSPACE_ID) ===
-    uploadWorkspaceId
-  )
+  const scope = item.uploadWorkspaceId?.trim()
+
+  if (
+    !scope ||
+    scope === DEFAULT_UPLOAD_WORKSPACE_ID ||
+    scope === UNSORTED_BRAND_SCOPE_ID
+  ) {
+    return null
+  }
+
+  if (brandIds && !brandIds.has(scope)) return null
+  return scope
+}
+
+export function isInBrandView(
+  item: { uploadWorkspaceId?: string },
+  view: BrandView,
+  activeBrandId: string | null,
+  brandIds?: ReadonlySet<string>,
+) {
+  if (view === "all") return true
+
+  const scopedBrandId = itemBrandId(item, brandIds)
+  if (view === "unsorted") return scopedBrandId === null
+
+  return Boolean(activeBrandId && scopedBrandId === activeBrandId)
 }
 
 export function useUploadsLibrary(libraryBridge?: LibraryBridge) {
@@ -54,7 +78,12 @@ export function useUploadsLibrary(libraryBridge?: LibraryBridge) {
         snapshot.workspaceState.activeWorkspaceId || defaultUploadWorkspace.id,
       )
       setReferences(
-        (snapshot.references as ReferenceAsset[]).map(normalizeReferenceUrl),
+        (snapshot.references as ReferenceAsset[])
+          .map((reference) => ({
+            ...reference,
+            source: reference.source ?? "local",
+          }))
+          .map(normalizeReferenceUrl),
       )
     },
     [],
@@ -64,7 +93,12 @@ export function useUploadsLibrary(libraryBridge?: LibraryBridge) {
     (persistedReferences: ReferenceAsset[]) => {
       setReferences(
         persistedReferences.length
-          ? persistedReferences.map(normalizeReferenceUrl)
+          ? persistedReferences
+              .map((reference) => ({
+                ...reference,
+                source: reference.source ?? "local",
+              }))
+              .map(normalizeReferenceUrl)
           : libraryBridge
             ? []
             : seededReferences,
@@ -106,27 +140,13 @@ export function useUploadsLibrary(libraryBridge?: LibraryBridge) {
     }
   }, [applyUploadsSnapshot, libraryBridge, references.length])
 
+  const loadMore = React.useCallback(() => Promise.resolve(), [])
+
   const reveal = React.useCallback(async () => {
     if (!libraryBridge) return
     const opened = await libraryBridge.revealReferenceAssets()
     if (!opened) toast("Could not open Uploads folder")
   }, [libraryBridge])
-
-  const deleteReference = React.useCallback(
-    async (id: string) => {
-      if (!libraryBridge) return
-
-      try {
-        applyUploadsSnapshot(await libraryBridge.deleteReferenceAsset({ id }))
-        toast("Removed Uploads file")
-      } catch (error) {
-        toast("Could not remove Uploads file", {
-          description: friendlyError(error),
-        })
-      }
-    },
-    [applyUploadsSnapshot, libraryBridge],
-  )
 
   const switchWorkspace = React.useCallback(
     async (id: string) => {
@@ -236,9 +256,13 @@ export function useUploadsLibrary(libraryBridge?: LibraryBridge) {
       activeWorkspaceId,
       references,
       refresh,
+      loadMore,
       reveal,
       importFiles,
-      deleteReference,
+      hasMore: false,
+      loadingMore: false,
+      canRevealReferences: true,
+      isRemote: false,
       switchWorkspace,
       createWorkspace,
       updateWorkspace,
@@ -248,9 +272,9 @@ export function useUploadsLibrary(libraryBridge?: LibraryBridge) {
       activeWorkspace,
       activeWorkspaceId,
       createWorkspace,
-      deleteReference,
       deleteWorkspace,
       importFiles,
+      loadMore,
       references,
       refresh,
       reveal,
