@@ -2,14 +2,25 @@ import * as React from "react"
 import {
   IconCheck,
   IconChevronDown,
+  IconCopy,
+  IconDownload,
+  IconExternalLink,
   IconLibraryPhoto,
+  IconLink,
   IconPlus,
   IconRefresh,
   IconSearch,
 } from "@tabler/icons-react"
 import { useQueryState } from "nuqs"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -317,39 +328,209 @@ const UploadCard = React.memo(function UploadCard({
   }, [asset.id, onToggle])
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      aria-pressed={selected}
-      className={cn(
-        "group relative aspect-square overflow-hidden rounded-2xl border bg-muted text-left outline-none transition-all [contain-intrinsic-size:220px_220px] [content-visibility:auto] focus-visible:ring-[3px] focus-visible:ring-ring/50",
-        selected
-          ? "border-ember ring-2 ring-ember/35"
-          : "border-border/60 hover:border-border",
-      )}
-    >
-      <ViewportUploadImage src={asset.url} alt={asset.name} />
-      <span
-        className={cn(
-          "absolute top-2 left-2 grid size-6 place-items-center rounded-full border text-white shadow-sm backdrop-blur-sm transition-opacity",
-          selected
-            ? "border-ember bg-ember text-ember-foreground"
-            : "border-white/50 bg-black/35 opacity-0 group-hover:opacity-100",
-        )}
-        aria-hidden="true"
-      >
-        {selected ? <IconCheck className="size-3.5" /> : null}
-      </span>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-      <div className="absolute inset-x-0 bottom-0 translate-y-2 p-3 text-white opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">
-        <p className="truncate text-sm font-medium drop-shadow">{asset.name}</p>
-        <p className="mt-0.5 text-xs text-white/75 drop-shadow">
-          {formatUploadDetail(asset, isRemote)}
-        </p>
-      </div>
-    </button>
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <button
+          type="button"
+          onClick={handleClick}
+          aria-pressed={selected}
+          className={cn(
+            "group relative aspect-square overflow-hidden rounded-2xl border bg-muted text-left outline-none transition-all [contain-intrinsic-size:220px_220px] [content-visibility:auto] focus-visible:ring-[3px] focus-visible:ring-ring/50",
+            selected
+              ? "border-ember ring-2 ring-ember/35"
+              : "border-border/60 hover:border-border",
+          )}
+        >
+          <ViewportUploadImage src={asset.url} alt={asset.name} />
+          <span
+            className={cn(
+              "absolute top-2 left-2 grid size-6 place-items-center rounded-full border text-white shadow-sm backdrop-blur-sm transition-opacity",
+              selected
+                ? "border-ember bg-ember text-ember-foreground"
+                : "border-white/50 bg-black/35 opacity-0 group-hover:opacity-100",
+            )}
+            aria-hidden="true"
+          >
+            {selected ? <IconCheck className="size-3.5" /> : null}
+          </span>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+          <div className="absolute inset-x-0 bottom-0 translate-y-2 p-3 text-white opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100">
+            <p className="text-xs text-white/75 drop-shadow">
+              {formatUploadDetail(asset, isRemote)}
+            </p>
+          </div>
+        </button>
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-52">
+        <ContextMenuItem onSelect={() => void copyUploadImage(asset)}>
+          <IconCopy /> Copy image
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => void downloadUploadImage(asset)}>
+          <IconDownload /> Download image
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => void copyUploadImageLink(asset)}>
+          <IconLink /> Copy image link
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => openUploadImage(asset)}>
+          <IconExternalLink /> Open image in new tab
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 })
+
+async function copyUploadImage(asset: ReferenceAsset) {
+  if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+    try {
+      await writeUploadImageLink(asset)
+      toast("Image copy is not supported", {
+        description: "Copied the image link instead.",
+      })
+    } catch {
+      toast("Could not copy image")
+    }
+    return
+  }
+
+  try {
+    const sourceBlob = await fetchImageBlob(asset.url)
+    const clipboardBlob =
+      sourceBlob.type === "image/png"
+        ? sourceBlob
+        : await convertImageBlobToPng(sourceBlob)
+
+    await navigator.clipboard.write([
+      new ClipboardItem({ [clipboardBlob.type]: clipboardBlob }),
+    ])
+    toast("Image copied")
+  } catch {
+    toast("Could not copy image", {
+      description: "Try copying the image link instead.",
+    })
+  }
+}
+
+async function downloadUploadImage(asset: ReferenceAsset) {
+  try {
+    const blob = await fetchImageBlob(asset.url)
+    triggerBlobDownload(blob, uploadImageFileName(asset, blob.type))
+    toast("Image download started")
+  } catch {
+    triggerUrlDownload(asset.url, uploadImageFileName(asset))
+    toast("Image opened for download", {
+      description: "If it opens in the browser, save it from there.",
+    })
+  }
+}
+
+async function copyUploadImageLink(asset: ReferenceAsset) {
+  try {
+    await writeUploadImageLink(asset)
+    toast("Image link copied")
+  } catch {
+    toast("Could not copy image link")
+  }
+}
+
+async function writeUploadImageLink(asset: ReferenceAsset) {
+  await navigator.clipboard.writeText(asset.url)
+}
+
+function openUploadImage(asset: ReferenceAsset) {
+  window.open(asset.url, "_blank", "noopener,noreferrer")
+}
+
+async function fetchImageBlob(url: string) {
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`Could not load image (${response.status})`)
+
+  const blob = await response.blob()
+  if (!blob.type.startsWith("image/")) {
+    throw new Error("Downloaded asset is not an image")
+  }
+
+  return blob
+}
+
+async function convertImageBlobToPng(blob: Blob) {
+  const bitmap = await createImageBitmap(blob)
+  const canvas = document.createElement("canvas")
+  canvas.width = bitmap.width
+  canvas.height = bitmap.height
+
+  const context = canvas.getContext("2d")
+  if (!context) throw new Error("Could not prepare image for clipboard")
+
+  context.drawImage(bitmap, 0, 0)
+  bitmap.close()
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((pngBlob) => {
+      if (pngBlob) resolve(pngBlob)
+      else reject(new Error("Could not prepare image for clipboard"))
+    }, "image/png")
+  })
+}
+
+function triggerBlobDownload(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob)
+  triggerUrlDownload(url, fileName)
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+function triggerUrlDownload(url: string, fileName: string) {
+  const link = document.createElement("a")
+  link.href = url
+  link.download = fileName
+  link.rel = "noopener"
+  document.body.append(link)
+  link.click()
+  link.remove()
+}
+
+function uploadImageFileName(asset: ReferenceAsset, contentType?: string) {
+  const name = sanitizeDownloadName(asset.name) || "assetwell-image"
+  if (/\.[a-z0-9]{2,5}$/i.test(name)) return name
+
+  return `${name}${imageExtensionFromUrl(asset.url) ?? imageExtensionForType(contentType) ?? ".png"}`
+}
+
+function sanitizeDownloadName(name: string) {
+  return name
+    .trim()
+    .replace(/[<>:"/\\|?*\u0000-\u001f]+/g, "-")
+    .replace(/\s+/g, " ")
+    .slice(0, 80)
+    .replace(/^\.+$/, "")
+}
+
+function imageExtensionFromUrl(url: string) {
+  try {
+    const extension = new URL(url).pathname.match(
+      /\.(avif|gif|jpeg|jpg|png|webp)$/i,
+    )?.[0]
+    return extension?.toLowerCase()
+  } catch {
+    return null
+  }
+}
+
+function imageExtensionForType(contentType?: string) {
+  switch (contentType) {
+    case "image/avif":
+      return ".avif"
+    case "image/gif":
+      return ".gif"
+    case "image/jpeg":
+      return ".jpg"
+    case "image/png":
+      return ".png"
+    case "image/webp":
+      return ".webp"
+    default:
+      return null
+  }
+}
 
 function ViewportUploadImage({ src, alt }: { src: string; alt: string }) {
   const rootRef = React.useRef<HTMLSpanElement | null>(null)
